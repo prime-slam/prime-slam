@@ -3,7 +3,7 @@ import numpy as np
 
 from typing import List
 
-from src.feature.feature import PointFeature
+from src.feature.point_feature import PointFeature
 from src.matching.matcher_base import Matcher
 from src.sensor.sensor_data_base import SensorData
 

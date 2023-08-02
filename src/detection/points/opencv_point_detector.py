@@ -4,7 +4,7 @@ import numpy as np
 from typing import List
 
 from src.detection.detector_base import Detector
-from src.feature.feature import PointFeature
+from src.feature.point_feature import PointFeature
 from src.sensor.rgbd import RGBDImage
 
 
