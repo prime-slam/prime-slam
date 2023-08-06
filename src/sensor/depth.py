@@ -33,3 +33,12 @@ class DepthImage(SensorData):
         y_3d[~nonzero_depths] = np.nan
 
         return np.column_stack([x_3d, y_3d, z_3d])
+
+    def back_project_lines(self, lines):
+        start_points = lines[:, 0]
+        end_points = lines[:, 1]
+        start_points_3d = self.back_project_points(start_points)
+        end_points_3d = self.back_project_points(end_points)
+        lines_3d = np.column_stack([start_points_3d, end_points_3d])
+
+        return lines_3d

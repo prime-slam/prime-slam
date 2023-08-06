@@ -2,14 +2,15 @@ import g2o
 import numpy as np
 
 from src.keyframe import Keyframe
+from src.relative_pose_estimation.estimator_base import PoseEstimatorBase
 from src.sensor.depth import DepthImage
 
 
-class RGBDPointPoseEstimator:
+class RGBDPointPoseEstimator(PoseEstimatorBase):
     def __init__(
         self,
         camera_intrinsics,
-        reprojection_threshold,
+        reprojection_threshold=30,
         iterations_number=4,
         optimizer_iterations_number=10,
         edges_min_number=20,
@@ -100,4 +101,5 @@ class RGBDPointPoseEstimator:
         block_solver = g2o.BlockSolverSE3(g2o.LinearSolverEigenSE3())
         solver = g2o.OptimizationAlgorithmLevenberg(block_solver)
         optimizer.set_algorithm(solver)
+
         return optimizer

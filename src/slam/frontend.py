@@ -2,7 +2,9 @@ from typing import List
 
 from src.detection.detector_base import Detector
 from src.keyframe import Keyframe
+from src.keyframe_selection.keyframe_selector import KeyframeSelector
 from src.matching.matcher_base import Matcher
+from src.relative_pose_estimation.estimator_base import PoseEstimatorBase
 
 
 class PrimeSLAMFrontend:
@@ -10,8 +12,8 @@ class PrimeSLAMFrontend:
         self,
         feature_extractor: Detector,
         feature_matcher: Matcher,
-        relative_pose_estimator,
-        keyframe_selector,
+        relative_pose_estimator: PoseEstimatorBase,
+        keyframe_selector: KeyframeSelector,
         init_pose,
     ):
         self.feature_extractor = feature_extractor
@@ -43,12 +45,13 @@ class PrimeSLAMFrontend:
         relative_pose = self.relative_pose_estimator.estimate(
             new_keyframe, last_keyframe, matches
         )
-        absolute_pose = self.calculate_new_absolute_pose(
+        absolute_pose = self.__calculate_new_absolute_pose(
             last_keyframe.world_to_camera_transform, relative_pose
         )
         new_keyframe.update_pose(absolute_pose)
-        if self.keyframe_selector.select(new_keyframe):
+        if self.keyframe_selector.is_selected(new_keyframe):
             self.keyframes.append(new_keyframe)
 
-    def calculate_new_absolute_pose(self, prev_abs_pose, relative_pose):
+    @staticmethod
+    def __calculate_new_absolute_pose(prev_abs_pose, relative_pose):
         return relative_pose @ prev_abs_pose

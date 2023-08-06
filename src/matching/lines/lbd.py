@@ -1,3 +1,4 @@
+import cv2
 import numpy as np
 import pytlbd
 from skimage.feature import match_descriptors
@@ -37,12 +38,15 @@ class LBD(Matcher):
             .flatten()
             .reshape(-1, 4)
         )
-
+        first_gray_image = cv2.cvtColor(first_sensor_data.rgb.image, cv2.COLOR_RGB2GRAY)
+        second_gray_image = cv2.cvtColor(
+            second_sensor_data.rgb.image, cv2.COLOR_RGB2GRAY
+        )
         first_descriptors = pytlbd.lbd_single_scale(
-            first_sensor_data.rgb, first_lines, self.bands_number, self.band_width
+            first_gray_image, first_lines, self.bands_number, self.band_width
         )
         second_descriptors = pytlbd.lbd_single_scale(
-            first_sensor_data.rgb, second_lines, self.bands_number, self.band_width
+            second_gray_image, second_lines, self.bands_number, self.band_width
         )
 
         return match_descriptors(first_descriptors, second_descriptors)

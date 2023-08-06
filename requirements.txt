@@ -1,6 +1,6 @@
-opencv-python
-opencv-contrib-python
-numpy
 matplotlib
-scikit-image
+numpy
 open3d
+opencv-contrib-python
+opencv-python
+scikit-image

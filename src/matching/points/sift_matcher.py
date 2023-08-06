@@ -20,7 +20,9 @@ class SIFTMatcher(Matcher):
         second_sensor_data,
     ):
         first_descriptors = np.array([feature.descriptor for feature in first_features])
-        second_descriptors = np.array([feature.descriptor for feature in second_features])
+        second_descriptors = np.array(
+            [feature.descriptor for feature in second_features]
+        )
         bf = cv2.BFMatcher(crossCheck=False)
         matches = bf.knnMatch(first_descriptors, second_descriptors, k=2)
 
