@@ -3,4 +3,5 @@ numpy
 open3d
 opencv-contrib-python
 opencv-python
+pre-commit
 scikit-image
