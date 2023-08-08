@@ -3,7 +3,7 @@ import numpy as np
 
 from typing import List
 
-from src.feature.point_feature import PointFeature
+from src.observation.point_observation import PointObservation
 from src.matching.matcher_base import Matcher
 
 
@@ -14,14 +14,14 @@ class SIFTMatcher(Matcher):
 
     def match(
         self,
-        first_features: List[PointFeature],
-        second_features: List[PointFeature],
+        first_observations: List[PointObservation],
+        second_observations: List[PointObservation],
         first_sensor_data,
         second_sensor_data,
     ):
-        first_descriptors = np.array([feature.descriptor for feature in first_features])
+        first_descriptors = np.array([observation.descriptor for observation in first_observations])
         second_descriptors = np.array(
-            [feature.descriptor for feature in second_features]
+            [observation.descriptor for observation in second_observations]
         )
         bf = cv2.BFMatcher(crossCheck=False)
         matches = bf.knnMatch(first_descriptors, second_descriptors, k=2)

@@ -1,6 +1,6 @@
 class Keyframe:
     def __init__(self, features, sensor_measurement, world_to_camera_transform=None):
-        self.features = features
+        self.observations = features
         self.sensor_measurement = sensor_measurement
         self.world_to_camera_transform = world_to_camera_transform
 

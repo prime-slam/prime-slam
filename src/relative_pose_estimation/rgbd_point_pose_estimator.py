@@ -26,10 +26,10 @@ class RGBDPointPoseEstimator(PoseEstimatorBase):
 
     def estimate(self, new_keyframe: Keyframe, prev_keyframe: Keyframe, matches):
         new_keypoints = np.array(
-            [np.array([feature.x, feature.y]) for feature in new_keyframe.features]
+            [np.array([observation.x, observation.y]) for observation in new_keyframe.observations]
         )
         prev_keypoints = np.array(
-            [np.array([feature.x, feature.y]) for feature in prev_keyframe.features]
+            [np.array([observation.x, observation.y]) for observation in prev_keyframe.observations]
         )
         prev_depth: DepthImage = prev_keyframe.sensor_measurement.depth
         prev_keypoints_3d = prev_depth.back_project_points(prev_keypoints)

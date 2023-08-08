@@ -1,7 +1,7 @@
-from src.feature.feature import Feature
+from src.observation.observation import Observation
 
 
-class PointFeature(Feature):
+class PointObservation(Observation):
     def __init__(self, x, y, descriptor=None):
         self.x = x
         self.y = y

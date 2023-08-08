@@ -29,14 +29,14 @@ class RGBDLinePoseEstimator(PoseEstimatorBase):
     def estimate(self, new_keyframe: Keyframe, prev_keyframe: Keyframe, matches):
         new_lines = np.array(
             [
-                np.array([feature.start_point, feature.end_point])
-                for feature in new_keyframe.features
+                np.array([observation.start_point, observation.end_point])
+                for observation in new_keyframe.observations
             ]
         ).reshape(-1, 4)
         prev_lines = np.array(
             [
-                np.array([feature.start_point, feature.end_point])
-                for feature in prev_keyframe.features
+                np.array([observation.start_point, observation.end_point])
+                for observation in prev_keyframe.observations
             ]
         ).reshape(-1, 4)
 

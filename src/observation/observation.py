@@ -1,5 +1,5 @@
 from abc import ABC
 
 
-class Feature(ABC):
+class Observation(ABC):
     pass

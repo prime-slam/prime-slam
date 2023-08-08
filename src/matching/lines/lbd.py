@@ -4,7 +4,7 @@ import pytlbd
 from skimage.feature import match_descriptors
 from typing import List
 
-from src.feature.line_feature import LineFeature
+from src.observation.line_observation import LineObservation
 from src.matching.matcher_base import Matcher
 from src.sensor.rgbd import RGBDImage
 
@@ -16,14 +16,14 @@ class LBD(Matcher):
 
     def match(
         self,
-        first_features: List[LineFeature],
-        second_features: List[LineFeature],
+        first_observations: List[LineObservation],
+        second_observations: List[LineObservation],
         first_sensor_data: RGBDImage,
         second_sensor_data: RGBDImage,
     ):
         first_lines = (
             np.array(
-                [[feature.start_point, feature.end_point] for feature in first_features]
+                [[observation.start_point, observation.end_point] for observation in first_observations]
             )
             .flatten()
             .reshape(-1, 4)
@@ -31,8 +31,8 @@ class LBD(Matcher):
         second_lines = (
             np.array(
                 [
-                    [feature.start_point, feature.end_point]
-                    for feature in second_features
+                    [observation.start_point, observation.end_point]
+                    for observation in second_observations
                 ]
             )
             .flatten()

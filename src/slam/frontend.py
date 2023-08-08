@@ -10,14 +10,14 @@ from src.relative_pose_estimation.estimator_base import PoseEstimatorBase
 class PrimeSLAMFrontend:
     def __init__(
         self,
-        feature_extractor: Detector,
-        feature_matcher: Matcher,
+        observation_detector: Detector,
+        observation_matcher: Matcher,
         relative_pose_estimator: PoseEstimatorBase,
         keyframe_selector: KeyframeSelector,
         init_pose,
     ):
-        self.feature_extractor = feature_extractor
-        self.feature_matcher = feature_matcher
+        self.observation_detector = observation_detector
+        self.observation_matcher = observation_matcher
         self.relative_pose_estimator = relative_pose_estimator
         self.keyframes: List[Keyframe] = []
         self.keyframe_selector = keyframe_selector
@@ -29,16 +29,16 @@ class PrimeSLAMFrontend:
         self.keyframes.append(keyframe)
 
     def process_frame(self, sensor_data):
-        features = self.feature_extractor.detect(sensor_data)
-        new_keyframe = Keyframe(features, sensor_data)
+        observations = self.observation_detector.detect(sensor_data)
+        new_keyframe = Keyframe(observations, sensor_data)
         if len(self.keyframes) == 0:
             self.initialize_map(new_keyframe)
             return
 
         last_keyframe = self.keyframes[-1]
-        matches = self.feature_matcher.match(
-            features,
-            last_keyframe.features,
+        matches = self.observation_matcher.match(
+            observations,
+            last_keyframe.observations,
             sensor_data,
             last_keyframe.sensor_measurement,
         )
