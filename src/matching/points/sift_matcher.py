@@ -19,7 +19,9 @@ class SIFTMatcher(Matcher):
         first_sensor_data,
         second_sensor_data,
     ):
-        first_descriptors = np.array([observation.descriptor for observation in first_observations])
+        first_descriptors = np.array(
+            [observation.descriptor for observation in first_observations]
+        )
         second_descriptors = np.array(
             [observation.descriptor for observation in second_observations]
         )

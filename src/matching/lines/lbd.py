@@ -23,7 +23,10 @@ class LBD(Matcher):
     ):
         first_lines = (
             np.array(
-                [[observation.start_point, observation.end_point] for observation in first_observations]
+                [
+                    [observation.start_point, observation.end_point]
+                    for observation in first_observations
+                ]
             )
             .flatten()
             .reshape(-1, 4)

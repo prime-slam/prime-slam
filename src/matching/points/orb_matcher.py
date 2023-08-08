@@ -19,8 +19,12 @@ class ORBMatcher(Matcher):
         first_sensor_data: SensorData,
         second_sensor_data: SensorData,
     ):
-        first_descs = np.array([observation.descriptor for observation in first_observations])
-        second_descs = np.array([observation.descriptor for observation in second_observations])
+        first_descs = np.array(
+            [observation.descriptor for observation in first_observations]
+        )
+        second_descs = np.array(
+            [observation.descriptor for observation in second_observations]
+        )
         bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=False)
         matches = bf.knnMatch(first_descs, second_descs, k=2)
 
