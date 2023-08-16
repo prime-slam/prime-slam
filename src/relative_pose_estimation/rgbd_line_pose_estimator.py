@@ -28,17 +28,11 @@ class RGBDLinePoseEstimator(PoseEstimatorBase):
 
     def estimate(self, new_keyframe: Keyframe, prev_keyframe: Keyframe, matches):
         new_lines = np.array(
-            [
-                np.array([observation.start_point, observation.end_point])
-                for observation in new_keyframe.observations
-            ]
-        ).reshape(-1, 4)
+            [keyline.coordinates for keyline in new_keyframe.observations.keyobjects]
+        )
         prev_lines = np.array(
-            [
-                np.array([observation.start_point, observation.end_point])
-                for observation in prev_keyframe.observations
-            ]
-        ).reshape(-1, 4)
+            [keyline.coordinates for keyline in prev_keyframe.observations.keyobjects]
+        )
 
         prev_depth: DepthImage = prev_keyframe.sensor_measurement.depth
         height, width = prev_depth.depth_map.shape[:2]
