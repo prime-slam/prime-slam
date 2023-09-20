@@ -3,11 +3,11 @@ import numpy as np
 
 from src.geometry.util import clip_lines
 from src.keyframe import Keyframe
-from src.relative_pose_estimation.estimator_base import PoseEstimatorBase
-from src.sensor.depth import DepthImage
+from src.pose_estimation.estimator_base import PoseEstimator
+from src.projection.line_projector import LineProjector
 
 
-class RGBDLinePoseEstimator(PoseEstimatorBase):
+class RGBDLinePoseEstimator(PoseEstimator):
     def __init__(
         self,
         camera_intrinsics,
@@ -25,41 +25,32 @@ class RGBDLinePoseEstimator(PoseEstimatorBase):
         self.fy = camera_intrinsics[1, 1]
         self.cx = camera_intrinsics[0, 2]
         self.cy = camera_intrinsics[1, 2]
+        self.lines_2d_shape = (-1, 2, 2)
+        self.lines_3d_shape = (-1, 2, 3)
+        self.projector = LineProjector()
 
-    def estimate(self, new_keyframe: Keyframe, prev_keyframe: Keyframe, matches):
-        new_lines = np.array(
-            [keyline.coordinates for keyline in new_keyframe.observations.keyobjects]
-        )
-        prev_lines = np.array(
-            [keyline.coordinates for keyline in prev_keyframe.observations.keyobjects]
-        )
-
-        prev_depth: DepthImage = prev_keyframe.sensor_measurement.depth
-        height, width = prev_depth.depth_map.shape[:2]
-
+    def estimate_absolute_pose(self, new_keyframe: Keyframe, map_lines_3d, matches, name):
         new_lines_index = matches[:, 0]
         prev_lines_index = matches[:, 1]
-        lines_2d_shape = (-1, 2, 2)
-        lines_3d_shape = (-1, 2, 3)
+        height, width = new_keyframe.sensor_measurement.depth.depth_map.shape[:2]
+
+        new_lines = np.array(
+            [keyline.coordinates for keyline in new_keyframe.observations.get_keyobjects(name)]
+        )
         new_lines = (
             clip_lines(new_lines, width=width, height=height)
             .astype(int)
-            .reshape(lines_2d_shape)[new_lines_index]
+            .reshape(self.lines_2d_shape)[new_lines_index]
         )
-        prev_lines = (
-            clip_lines(prev_lines, width=width, height=height)
-            .astype(int)
-            .reshape(lines_2d_shape)[prev_lines_index]
-        )
-        prev_lines_3d = prev_depth.back_project_lines(prev_lines)
+        map_lines_3d = map_lines_3d[prev_lines_index]
 
         nan_mask = np.logical_or.reduce(
-            np.isinf(prev_lines_3d) | np.isnan(prev_lines_3d),
+            np.isinf(map_lines_3d) | np.isnan(map_lines_3d),
             axis=-1,
         )
 
         lines_obs = new_lines[~nan_mask]
-        keyframe_3d_lines = prev_lines_3d[~nan_mask].reshape(lines_3d_shape)
+        map_lines_3d = map_lines_3d[~nan_mask].reshape(self.lines_3d_shape)
 
         optimizer = self.__create_optimizer()
         v1 = g2o.VertexSE3Expmap()
@@ -77,10 +68,10 @@ class RGBDLinePoseEstimator(PoseEstimatorBase):
                 np.append(lines_obs[i][0], 1), np.append(lines_obs[i][1], 1)
             )
             first_edge = self.__create_edge(
-                v1, measurement, information, keyframe_3d_lines[i][0]
+                v1, measurement, information, map_lines_3d[i][0]
             )
             second_edge = self.__create_edge(
-                v1, measurement, information, keyframe_3d_lines[i][1]
+                v1, measurement, information, map_lines_3d[i][1]
             )
             optimizer.add_edge(first_edge)
             optimizer.add_edge(second_edge)
@@ -113,6 +104,25 @@ class RGBDLinePoseEstimator(PoseEstimatorBase):
                 break
 
         return v1.estimate().matrix()
+
+    def estimate_relative_pose(
+        self, new_keyframe: Keyframe, prev_keyframe: Keyframe, matches, name
+    ):
+        prev_lines = np.array(
+            [keyline.coordinates for keyline in prev_keyframe.observations.get_keyobjects(name)]
+        )
+
+        prev_depth_map = prev_keyframe.sensor_measurement.depth.depth_map
+        prev_depth_scale = prev_keyframe.sensor_measurement.depth.depth_scale
+        prev_intrinsics = prev_keyframe.sensor_measurement.depth.intrinsics
+        height, width = prev_depth_map.shape[:2]
+
+        prev_lines = clip_lines(prev_lines, width=width, height=height).astype(int)
+        prev_lines_3d = self.projector.back_project(
+            prev_lines, prev_depth_map, prev_depth_scale, prev_intrinsics, np.eye(4)
+        )
+
+        return self.estimate_absolute_pose(new_keyframe, prev_lines_3d, matches, name)
 
     @staticmethod
     def __create_optimizer():

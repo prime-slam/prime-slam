@@ -6,22 +6,35 @@ from src.observation.observation import Observation
 
 
 class ObservationsBatch:
-    def __init__(self, keyobjects: List[Keyobject], descriptors: np.ndarray):
-        self._observations = [
-            Observation(keyobject, descriptor)
-            for keyobject, descriptor in zip(keyobjects, descriptors)
-        ]
-        self._descriptors = descriptors
-        self._keyobjects = keyobjects
+    def __init__(
+        self,
+        keyobjects_batch: List[List[Keyobject]],
+        descriptors_batch: List[np.ndarray],
+        names: List[str],
+    ):
+        self._observations_batch = {}
+        self._descriptors_batch = {}
+        self._keyobjects_batch = {}
+        self._names = names
+        for keyobjects, descriptors, name in zip(
+            keyobjects_batch, descriptors_batch, names
+        ):
+            self._observations_batch[name] = [
+                Observation(keyobject, descriptor)
+                for keyobject, descriptor in zip(keyobjects, descriptors)
+            ]
+            self._descriptors_batch[name] = descriptors
+            self._keyobjects_batch[name] = keyobjects
 
     @property
-    def observations(self):
-        return self._observations
+    def observation_names(self):
+        return self._names
 
-    @property
-    def descriptors(self):
-        return self._descriptors
+    def get_observations(self, name):
+        return self._observations_batch[name]
 
-    @property
-    def keyobjects(self):
-        return self._keyobjects
+    def get_descriptors(self, name):
+        return self._descriptors_batch[name]
+
+    def get_keyobjects(self, name):
+        return self._keyobjects_batch[name]

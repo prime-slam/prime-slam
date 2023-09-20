@@ -2,11 +2,11 @@ import g2o
 import numpy as np
 
 from src.keyframe import Keyframe
-from src.relative_pose_estimation.estimator_base import PoseEstimatorBase
-from src.sensor.depth import DepthImage
+from src.pose_estimation.estimator_base import PoseEstimator
+from src.projection.point_projection import PointProjector
 
 
-class RGBDPointPoseEstimator(PoseEstimatorBase):
+class RGBDPointPoseEstimator(PoseEstimator):
     def __init__(
         self,
         camera_intrinsics,
@@ -23,26 +23,25 @@ class RGBDPointPoseEstimator(PoseEstimatorBase):
         self.fy = camera_intrinsics[1, 1]
         self.cx = camera_intrinsics[0, 2]
         self.cy = camera_intrinsics[1, 2]
+        self.projector = PointProjector()
 
-    def estimate(self, new_keyframe: Keyframe, prev_keyframe: Keyframe, matches):
+    def estimate_absolute_pose(self, new_keyframe: Keyframe, map_3d_points, matches, name):
         new_keypoints = np.array(
-            [keypoint.coordinates for keypoint in new_keyframe.observations.keyobjects]
+            [keypoint.coordinates for keypoint in new_keyframe.observations.get_keyobjects(name)]
         )
-        prev_keypoints = np.array(
-            [keypoint.coordinates for keypoint in prev_keyframe.observations.keyobjects]
-        )
-        prev_depth: DepthImage = prev_keyframe.sensor_measurement.depth
-        prev_keypoints_3d = prev_depth.back_project_points(prev_keypoints)
-
         new_keypoints_index = matches[:, 0]
         prev_keypoints_index = matches[:, 1]
 
         kpts_obs = new_keypoints[new_keypoints_index]
-        keyframe_3d_points = prev_keypoints_3d[prev_keypoints_index]
+        map_3d_points = map_3d_points[prev_keypoints_index]
 
-        nan_mask = np.logical_or.reduce(np.isnan(keyframe_3d_points), axis=-1)
+        nan_mask = np.logical_or.reduce(
+            np.isinf(map_3d_points) | np.isnan(map_3d_points),
+            axis=-1,
+        )
+
         kpts_obs = kpts_obs[~nan_mask]
-        keyframe_3d_points = keyframe_3d_points[~nan_mask]
+        map_3d_points = map_3d_points[~nan_mask]
 
         edges = []
         optimizer = self.__create_optimizer()
@@ -66,7 +65,7 @@ class RGBDPointPoseEstimator(PoseEstimatorBase):
             edge.fy = self.fy
             edge.cx = self.cx
             edge.cy = self.cy
-            edge.Xw = keyframe_3d_points[i]
+            edge.Xw = map_3d_points[i]
 
             optimizer.add_edge(edge)
             edges.append(edge)
@@ -94,6 +93,21 @@ class RGBDPointPoseEstimator(PoseEstimatorBase):
                 break
 
         return v1.estimate().matrix()
+
+    def estimate_relative_pose(
+        self, new_keyframe: Keyframe, prev_keyframe: Keyframe, matches, name
+    ):
+        prev_keypoints = np.array(
+            [keypoint.coordinates for keypoint in prev_keyframe.observations.get_keyobjects(name)]
+        )
+        prev_depth_map = prev_keyframe.sensor_measurement.depth.depth_map
+        prev_depth_scale = prev_keyframe.sensor_measurement.depth.depth_scale
+        prev_intrinsics = prev_keyframe.sensor_measurement.depth.intrinsics
+        prev_keypoints_3d = self.projector.back_project(
+            prev_keypoints, prev_depth_map, prev_depth_scale, prev_intrinsics, np.eye(4)
+        )
+
+        return self.estimate_absolute_pose(new_keyframe, prev_keypoints_3d, matches, name)
 
     @staticmethod
     def __create_optimizer():
