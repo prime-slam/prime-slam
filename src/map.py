@@ -21,7 +21,10 @@ class Map:
 
     def get_mean_viewing_directions(self, landmark_name):
         return np.array(
-            [landmark.mean_viewing_direction for landmark in self._landmarks[landmark_name]]
+            [
+                landmark.mean_viewing_direction
+                for landmark in self._landmarks[landmark_name]
+            ]
         )
 
     def get_size(self, landmark_name):

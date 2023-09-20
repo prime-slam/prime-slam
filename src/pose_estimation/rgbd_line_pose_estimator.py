@@ -29,13 +29,18 @@ class RGBDLinePoseEstimator(PoseEstimator):
         self.lines_3d_shape = (-1, 2, 3)
         self.projector = LineProjector()
 
-    def estimate_absolute_pose(self, new_keyframe: Keyframe, map_lines_3d, matches, name):
+    def estimate_absolute_pose(
+        self, new_keyframe: Keyframe, map_lines_3d, matches, name
+    ):
         new_lines_index = matches[:, 0]
         prev_lines_index = matches[:, 1]
         height, width = new_keyframe.sensor_measurement.depth.depth_map.shape[:2]
 
         new_lines = np.array(
-            [keyline.coordinates for keyline in new_keyframe.observations.get_keyobjects(name)]
+            [
+                keyline.coordinates
+                for keyline in new_keyframe.observations.get_keyobjects(name)
+            ]
         )
         new_lines = (
             clip_lines(new_lines, width=width, height=height)
@@ -109,7 +114,10 @@ class RGBDLinePoseEstimator(PoseEstimator):
         self, new_keyframe: Keyframe, prev_keyframe: Keyframe, matches, name
     ):
         prev_lines = np.array(
-            [keyline.coordinates for keyline in prev_keyframe.observations.get_keyobjects(name)]
+            [
+                keyline.coordinates
+                for keyline in prev_keyframe.observations.get_keyobjects(name)
+            ]
         )
 
         prev_depth_map = prev_keyframe.sensor_measurement.depth.depth_map

@@ -25,9 +25,14 @@ class RGBDPointPoseEstimator(PoseEstimator):
         self.cy = camera_intrinsics[1, 2]
         self.projector = PointProjector()
 
-    def estimate_absolute_pose(self, new_keyframe: Keyframe, map_3d_points, matches, name):
+    def estimate_absolute_pose(
+        self, new_keyframe: Keyframe, map_3d_points, matches, name
+    ):
         new_keypoints = np.array(
-            [keypoint.coordinates for keypoint in new_keyframe.observations.get_keyobjects(name)]
+            [
+                keypoint.coordinates
+                for keypoint in new_keyframe.observations.get_keyobjects(name)
+            ]
         )
         new_keypoints_index = matches[:, 0]
         prev_keypoints_index = matches[:, 1]
@@ -98,7 +103,10 @@ class RGBDPointPoseEstimator(PoseEstimator):
         self, new_keyframe: Keyframe, prev_keyframe: Keyframe, matches, name
     ):
         prev_keypoints = np.array(
-            [keypoint.coordinates for keypoint in prev_keyframe.observations.get_keyobjects(name)]
+            [
+                keypoint.coordinates
+                for keypoint in prev_keyframe.observations.get_keyobjects(name)
+            ]
         )
         prev_depth_map = prev_keyframe.sensor_measurement.depth.depth_map
         prev_depth_scale = prev_keyframe.sensor_measurement.depth.depth_scale
@@ -107,7 +115,9 @@ class RGBDPointPoseEstimator(PoseEstimator):
             prev_keypoints, prev_depth_map, prev_depth_scale, prev_intrinsics, np.eye(4)
         )
 
-        return self.estimate_absolute_pose(new_keyframe, prev_keypoints_3d, matches, name)
+        return self.estimate_absolute_pose(
+            new_keyframe, prev_keypoints_3d, matches, name
+        )
 
     @staticmethod
     def __create_optimizer():
