@@ -17,7 +17,9 @@ class OpenCVPointDetector(Detector):
 
     def detect(self, sensor_data: RGBDImage) -> List[Keyobject]:
         gray = cv2.cvtColor(np.array(sensor_data.rgb.image), cv2.COLOR_RGB2GRAY)
+        depth = sensor_data.depth.depth_map
         keypoints = self.detector.detect(gray, None)
+        positions = np.array([kp.pt for kp in keypoints]).astype(int)
 
         return [
             OpenCVKeypoint(kp, self.inv_squared_sigma_levels[kp.octave])

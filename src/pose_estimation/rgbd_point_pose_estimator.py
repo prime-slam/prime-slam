@@ -75,7 +75,7 @@ class RGBDPointPoseEstimator(PoseEstimator):
             optimizer.add_edge(edge)
             edges.append(edge)
 
-        inl_mask = np.ones((len(kpts_obs),), dtype=np.bool)
+        inl_mask = np.ones((len(kpts_obs),), dtype=bool)
 
         for i in range(self.iterations_number):
             v1.set_estimate(g2o.SE3Quat(np.eye(3), np.zeros((3,))))

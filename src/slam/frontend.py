@@ -1,6 +1,6 @@
-from typing import List
-
 import numpy as np
+
+from typing import List
 
 from src.graph.factor_graph import FactorGraph
 from src.keyframe import Keyframe
@@ -10,6 +10,7 @@ from src.map import Map
 from src.observation.keyobject import Keyobject
 from src.observation.observation_creator import ObservationsCreator
 from src.observation.observations_batch import ObservationsBatch
+from src.slam.backend import Backend
 
 
 class PrimeSLAMFrontend:
@@ -17,18 +18,20 @@ class PrimeSLAMFrontend:
         self,
         observation_creators: List[ObservationsCreator],
         keyframe_selector: KeyframeSelector,
+        backend: Backend,
         init_pose,
     ):
         self.observation_creators = observation_creators
         self.keyframes: List[Keyframe] = []
         self.keyframe_selector = keyframe_selector
+        self.backend = backend
         self.map = Map()
         self.init_pose = init_pose
         self.keyframe_counter = 0
         self.graph = FactorGraph()
 
     def initialize_map(self, keyframe: Keyframe):
-        keyframe.update_pose(np.linalg.inv(self.init_pose))
+        keyframe.update_pose(self.init_pose)
 
         for observation_creator in self.observation_creators:
             observation_name = observation_creator.observation_name
@@ -139,7 +142,6 @@ class PrimeSLAMFrontend:
                 & (projected_map[:, 1] >= 0)
                 & (projected_map[:, 1] < height)
                 & depth_mask
-                & viewing_direction_mask
             )
 
             map_indices_masked = np.where(mask)[0]
@@ -162,11 +164,11 @@ class PrimeSLAMFrontend:
             new_keyframe.update_pose(absolute_pose)
 
         if self.keyframe_selector.is_selected(new_keyframe):
-            new_keyframe.identifier = self.keyframe_counter
+            self.add_keyframe(new_keyframe)
             origin = new_keyframe.origin
             self.graph.add_pose_node(
                 node_id=new_keyframe.identifier,
-                pose=new_keyframe.camera_to_world_transform,
+                pose=new_keyframe.world_to_camera_transform,
             )
             for observation_creator in self.observation_creators:
                 observation_name = observation_creator.observation_name
@@ -182,17 +184,20 @@ class PrimeSLAMFrontend:
                     new_keyframe.sensor_measurement.depth.depth_map,
                     new_keyframe.sensor_measurement.depth.depth_scale,
                     new_keyframe.sensor_measurement.depth.intrinsics,
-                    self.init_pose,
+                    new_keyframe.world_to_camera_transform,
                 )
 
                 descriptors = new_keyframe.observations.get_descriptors(
                     observation_name
                 )
-
-                # add matched correspondances
+                depth_map = new_keyframe.sensor_measurement.depth.depth_map
+                # add matched correspondences
                 for new_index, map_index in zip(
                     new_keypoints_index, map_keypoints_index
                 ):
+                    x, y = keyobjects[new_index].coordinates.astype(int)
+                    if depth_map[y, x] == 0:
+                        continue
                     landmark_position = self.map.get_landmarks(observation_name)[
                         map_index
                     ].position
@@ -216,6 +221,9 @@ class PrimeSLAMFrontend:
                 for unmatched_index in unmatched_indices:
                     landmark_id = self.map.get_size(observation_name)
                     landmark_position = landmark_positions[unmatched_index]
+                    if np.logical_or.reduce(np.isnan(landmark_position), axis=-1):
+                        continue
+                    landmark_position = landmark_position
                     viewing_direction = landmark_position - origin
                     self.graph.add_landmark_node(landmark_id, landmark_position)
                     self.graph.add_observation_factor(
@@ -233,6 +241,17 @@ class PrimeSLAMFrontend:
                         ),
                         observation_name,
                     )
+                self.optimize_graph(observation_name)
 
-            self.keyframes.append(new_keyframe)
-            self.keyframe_counter += 1
+    def optimize_graph(self, landmark_name):
+        new_poses, new_landmark_positions = self.backend.optimize(self.graph)
+        self.map.update_position(new_landmark_positions, landmark_name)
+        for kf, new_pose in zip(self.keyframes, new_poses):
+            kf.update_pose(new_pose)
+        self.graph.update_poses(new_poses)
+        self.graph.update_landmarks_positions(new_landmark_positions)
+
+    def add_keyframe(self, new_keyframe: Keyframe):
+        new_keyframe.identifier = self.keyframe_counter
+        self.keyframes.append(new_keyframe)
+        self.keyframe_counter += 1

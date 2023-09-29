@@ -37,6 +37,16 @@ class FactorGraph:
         self.factors.append(odometry_factor)
         self.odometry_factors.append(odometry_factor)
 
+    def update_landmarks_positions(self, new_positions):
+        for new_position, landmark_node in zip(
+            new_positions, self._landmark_nodes.values()
+        ):
+            landmark_node.position = new_position
+
+    def update_poses(self, new_poses):
+        for new_pose, pose_node in zip(new_poses, self.pose_nodes):
+            pose_node.pose = new_pose
+
     def add_observation_factor(
         self, pose_id, landmark_id, observation, sensor_measurement, information=None
     ):

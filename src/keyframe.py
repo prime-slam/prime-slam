@@ -1,5 +1,3 @@
-from black import List
-
 from src.observation.observations_batch import ObservationsBatch
 from src.sensor.sensor_data_base import SensorData
 
@@ -12,7 +10,7 @@ class Keyframe:
         world_to_camera_transform=None,
         identifier: int = 0,
     ):
-        self.observations = observations
+        self.observations: ObservationsBatch = observations
         self.sensor_measurement = sensor_measurement
         self.world_to_camera_transform = None
         self.camera_to_world_transform = None

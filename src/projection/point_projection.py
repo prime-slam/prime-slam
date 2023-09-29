@@ -4,8 +4,6 @@ from src.projection.projector_base import Projector
 
 
 class PointProjector(Projector):
-    # TODO: filter zero depth
-
     def transform(self, points_3d, transformation_matrix):
         ones_column = np.ones((len(points_3d), 1))
         points_3d_homo = np.concatenate([points_3d, ones_column], axis=1)

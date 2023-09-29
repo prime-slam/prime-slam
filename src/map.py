@@ -47,3 +47,9 @@ class Map:
         self._landmarks[landmark_name][landmark_id].add_viewing_direction(
             viewing_direction
         )
+
+    def update_position(self, new_positions, landmark_name):
+        for landmark, new_position in zip(
+            self._landmarks[landmark_name], new_positions
+        ):
+            landmark.position = new_position
