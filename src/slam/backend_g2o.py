@@ -26,7 +26,7 @@ class G2OPointSLAMBackend(Backend):
         pose_vertices = []
         landmark_vertices = []
         edges = []
-
+        max_id = 0
         for pose_node in pose_nodes:
             vertex = g2o.VertexSE3Expmap()
             pose = pose_node.pose
@@ -38,11 +38,11 @@ class G2OPointSLAMBackend(Backend):
             vertex.set_fixed(pose_node.identifier == 0)
             optimizer.add_vertex(vertex)
             pose_vertices.append(vertex)
-
-        poses_number = len(pose_nodes)
+            max_id = max(max_id, pose_node.identifier)
+        max_id = max_id + 1
         for landmark_node in landmark_nodes:
             vertex = g2o.VertexSBAPointXYZ()
-            vertex_id = poses_number + landmark_node.identifier
+            vertex_id = max_id + landmark_node.identifier
             vertex.set_estimate(landmark_node.position)
             vertex.set_id(vertex_id)
             vertex.set_marginalized(True)
@@ -51,7 +51,7 @@ class G2OPointSLAMBackend(Backend):
             landmark_vertices.append(vertex)
 
         for observation_factor in observation_factors:
-            landmark_id = observation_factor.to_node + poses_number
+            landmark_id = observation_factor.to_node + max_id
             pose_id = observation_factor.from_node
             edge = g2o.EdgeStereoSE3ProjectXYZ()
 

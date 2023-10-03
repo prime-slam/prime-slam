@@ -1,7 +1,7 @@
 import g2o
 import numpy as np
 
-from src.keyframe import Keyframe
+from src.frame import Frame
 from src.pose_estimation.estimator_base import PoseEstimator
 from src.projection.point_projection import PointProjector
 
@@ -25,9 +25,7 @@ class RGBDPointPoseEstimator(PoseEstimator):
         self.cy = camera_intrinsics[1, 2]
         self.projector = PointProjector()
 
-    def estimate_absolute_pose(
-        self, new_keyframe: Keyframe, map_3d_points, matches, name
-    ):
+    def estimate_absolute_pose(self, new_keyframe: Frame, map_3d_points, matches, name):
         new_keypoints = np.array(
             [
                 keypoint.coordinates
@@ -100,7 +98,7 @@ class RGBDPointPoseEstimator(PoseEstimator):
         return v1.estimate().matrix()
 
     def estimate_relative_pose(
-        self, new_keyframe: Keyframe, prev_keyframe: Keyframe, matches, name
+        self, new_keyframe: Frame, prev_keyframe: Frame, matches, name
     ):
         prev_keypoints = np.array(
             [

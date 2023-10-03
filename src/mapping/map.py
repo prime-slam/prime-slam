@@ -9,6 +9,10 @@ class Map:
     def __init__(self, landmarks: Dict[str, List[Landmark]] = None):
         self._landmarks = landmarks if landmarks is not None else {}
 
+    @property
+    def landmark_names(self):
+        return list(self._landmarks.keys())
+
     def get_descriptors(self, landmark_name):
         return np.array(
             [landmark.feature_descriptor for landmark in self._landmarks[landmark_name]]
@@ -43,13 +47,15 @@ class Map:
             self._landmarks[landmark_name] = []
         self._landmarks[landmark_name].extend(landmarks)
 
-    def add_viewing_direction(self, landmark_name, landmark_id, viewing_direction):
-        self._landmarks[landmark_name][landmark_id].add_viewing_direction(
-            viewing_direction
-        )
+    def add_associated_keyframe(self, landmark_name, landmark_id, keyframe):
+        self._landmarks[landmark_name][landmark_id].add_associated_keyframe(keyframe)
 
     def update_position(self, new_positions, landmark_name):
         for landmark, new_position in zip(
             self._landmarks[landmark_name], new_positions
         ):
             landmark.position = new_position
+
+    def recalculate_mean_viewing_directions(self, landmark_name):
+        for landmark in self._landmarks[landmark_name]:
+            landmark.recalculate_mean_viewing_direction()

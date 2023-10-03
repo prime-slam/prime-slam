@@ -2,7 +2,7 @@ import g2o
 import numpy as np
 
 from src.geometry.util import clip_lines
-from src.keyframe import Keyframe
+from src.frame import Frame
 from src.pose_estimation.estimator_base import PoseEstimator
 from src.projection.line_projector import LineProjector
 
@@ -29,9 +29,7 @@ class RGBDLinePoseEstimator(PoseEstimator):
         self.lines_3d_shape = (-1, 2, 3)
         self.projector = LineProjector()
 
-    def estimate_absolute_pose(
-        self, new_keyframe: Keyframe, map_lines_3d, matches, name
-    ):
+    def estimate_absolute_pose(self, new_keyframe: Frame, map_lines_3d, matches, name):
         new_lines_index = matches[:, 0]
         prev_lines_index = matches[:, 1]
         height, width = new_keyframe.sensor_measurement.depth.depth_map.shape[:2]
@@ -111,7 +109,7 @@ class RGBDLinePoseEstimator(PoseEstimator):
         return v1.estimate().matrix()
 
     def estimate_relative_pose(
-        self, new_keyframe: Keyframe, prev_keyframe: Keyframe, matches, name
+        self, new_keyframe: Frame, prev_keyframe: Frame, matches, name
     ):
         prev_lines = np.array(
             [

@@ -22,7 +22,8 @@ from src.sensor.depth import DepthImage
 from src.sensor.rgb import RGBImage
 from src.sensor.rgbd import RGBDImage
 from src.slam.backend_g2o import G2OPointSLAMBackend
-from src.slam.frontend import PrimeSLAMFrontend
+from src.slam.slam import PrimeSLAM
+from src.slam.tracking_frontend import TrackingFrontend
 
 
 def get_point_cloud(points_3d):
@@ -152,10 +153,11 @@ if __name__ == "__main__":
         for img, depth in zip(images, depths)
     ]
     keyframe_selector = EveryNthKeyframeSelector(n=step)
-    slam = PrimeSLAMFrontend(
-        [orb_creator],
-        keyframe_selector,
+    observation_creators = [orb_creator]
+    slam = PrimeSLAM(
+        observation_creators,
         backend=G2OPointSLAMBackend(intrinsics),
+        frontend=TrackingFrontend(observation_creators, keyframe_selector, init_pose),
         init_pose=init_pose,
     )
 
