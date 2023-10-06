@@ -20,7 +20,9 @@ class Landmark:
 
     def recalculate_mean_viewing_direction(self):
         origins = np.array([kf.origin for kf in self._associated_keyframes])
-        self._mean_viewing_direction = np.sum(self._position - origins, axis=0)
+        self._mean_viewing_direction = np.sum(
+            self.__normalize(self._position - origins), axis=0
+        )
         self.__normalize_mean_viewing_direction()
 
     @property
@@ -53,5 +55,13 @@ class Landmark:
         self._mean_viewing_direction += viewing_direction
         self.__normalize_mean_viewing_direction()
 
+    def __normalize(self, vector):
+        norm = np.linalg.norm(vector)
+        if norm >= 1.0e-10:
+            vector /= norm
+        return vector
+
     def __normalize_mean_viewing_direction(self):
-        self._mean_viewing_direction /= np.linalg.norm(self._mean_viewing_direction)
+        norm = np.linalg.norm(self._mean_viewing_direction)
+        if norm >= 1.0e-10:
+            self._mean_viewing_direction /= np.linalg.norm(self._mean_viewing_direction)

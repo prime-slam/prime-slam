@@ -1,9 +1,7 @@
-from abc import ABC, abstractmethod
+from abc import ABC, abstractmethod, abstractproperty
 
-from typing import Tuple
-
-from src.data_association import DataAssociation
 from src.frame import Frame
+from src.graph.factor_graph import FactorGraph
 from src.mapping.map import Map
 from src.sensor.sensor_data_base import SensorData
 
@@ -13,20 +11,25 @@ class Frontend(ABC):
     def process_sensor_data(self, sensor_data: SensorData) -> Frame:
         pass
 
-    # TODO: reorganize interface
     @abstractmethod
-    def track(
-        self,
-        prev_frame: Frame,
-        new_frame: Frame,
-        sensor_data: SensorData,
-    ) -> Frame:
+    def update_poses(self, new_poses):
         pass
 
     @abstractmethod
-    def initialize_tracking(self, frame: Frame):
+    def update_landmark_positions(self, new_positions, landmark_name):
         pass
 
+    @property
     @abstractmethod
-    def add_new_keyframe(self, new_frame: Frame, matches_batch):
+    def graph(self) -> FactorGraph:
+        pass
+
+    @property
+    @abstractmethod
+    def map(self) -> FactorGraph:
+        pass
+
+    @property
+    @abstractmethod
+    def trajectory(self) -> FactorGraph:
         pass

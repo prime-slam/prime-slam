@@ -1,5 +1,7 @@
 import numpy as np
 
+from src.frame import Frame
+from src.mapping.map import Map
 from src.projection.projector_base import Projector
 
 
@@ -55,3 +57,43 @@ class PointProjector(Projector):
         projected_points = projected_points_homo.T[..., :2]
 
         return projected_points
+
+    def get_visible_map_points(
+        self,
+        landmarks_map: Map,
+        frame: Frame,
+        observation_name,
+    ):
+        landmark_positions = landmarks_map.get_positions(observation_name)
+        landmark_positions_cam = self.transform(
+            landmark_positions, frame.world_to_camera_transform
+        )
+        map_mean_viewing_directions = landmarks_map.get_mean_viewing_directions(
+            observation_name
+        )
+        projected_map = self.project(
+            landmark_positions_cam,
+            frame.sensor_measurement.depth.intrinsics,
+            np.eye(4),
+        )
+        depth_mask = landmark_positions_cam[:, 2] > 0
+        origin = frame.origin
+        viewing_directions = landmark_positions - origin
+        viewing_directions = viewing_directions / np.linalg.norm(
+            viewing_directions, axis=-1
+        ).reshape(-1, 1)
+        height, width = frame.sensor_measurement.depth.depth_map.shape[:2]
+
+        viewing_direction_mask = (
+            np.sum(map_mean_viewing_directions * viewing_directions, axis=-1) >= 0.5
+        )
+        mask = (
+            (projected_map[:, 0] >= 0)
+            & (projected_map[:, 0] < width)
+            & (projected_map[:, 1] >= 0)
+            & (projected_map[:, 1] < height)
+            & depth_mask
+            & viewing_direction_mask
+        )
+
+        return projected_map, mask

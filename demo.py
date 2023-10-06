@@ -22,7 +22,7 @@ from src.sensor.depth import DepthImage
 from src.sensor.rgb import RGBImage
 from src.sensor.rgbd import RGBDImage
 from src.slam.backend_g2o import G2OPointSLAMBackend
-from src.slam.slam import PrimeSLAM
+from src.slam.prime_slam import PrimeSLAM
 from src.slam.tracking_frontend import TrackingFrontend
 
 
@@ -155,15 +155,13 @@ if __name__ == "__main__":
     keyframe_selector = EveryNthKeyframeSelector(n=step)
     observation_creators = [orb_creator]
     slam = PrimeSLAM(
-        observation_creators,
         backend=G2OPointSLAMBackend(intrinsics),
         frontend=TrackingFrontend(observation_creators, keyframe_selector, init_pose),
-        init_pose=init_pose,
     )
 
     for frame in frames:
-        slam.process_frame(frame)
-    poses = np.array([kf.world_to_camera_transform for kf in slam.keyframes])
+        slam.process_sensor_data(frame)
+    poses = slam.trajectory
     angular_translation_errors = []
     angular_rotation_errors = []
     absolute_translation_errors = []
@@ -186,9 +184,11 @@ if __name__ == "__main__":
             f"Median absolute_translation_error: {np.median(absolute_translation_errors)}"
         )
 
-    clouds = create_point_map(slam.keyframes, intrinsics)
+    clouds = create_point_map(slam.frontend.keyframes, intrinsics)
     resulting_cloud = clouds[0]
     for i in range(1, len(clouds)):
         resulting_cloud += clouds[i]
     if args.save_cloud:
         o3d.io.write_point_cloud("resulting_cloud.pcd", resulting_cloud)
+
+    o3d.visualization.draw_geometries([resulting_cloud])

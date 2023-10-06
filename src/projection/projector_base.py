@@ -2,6 +2,9 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 
+from src.frame import Frame
+from src.mapping.map import Map
+
 
 class Projector(ABC):
     @abstractmethod
@@ -25,5 +28,14 @@ class Projector(ABC):
         depth_scale: float,
         intrinsics: np.ndarray,
         extrinsics: np.ndarray,
+    ):
+        pass
+
+    @abstractmethod
+    def get_visible_map_points(
+        self,
+        landmarks_map: Map,
+        frame: Frame,
+        observation_name,
     ):
         pass

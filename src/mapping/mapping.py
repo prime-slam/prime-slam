@@ -3,15 +3,16 @@ from typing import List
 import numpy as np
 
 from src.frame import Frame
-from src.landmark import Landmark
+from src.mapping.landmark import Landmark
 from src.mapping.map import Map
 from src.observation.keyobject import Keyobject
 from src.observation.observation_creator import ObservationsCreator
+from src.utils.context_counter import ContextCounter
 
 
 class Mapping:
     def __init__(self, observation_creators: List[ObservationsCreator]):
-        self.landmarks_counter = 0
+        self.landmarks_counter = ContextCounter()
         self.observation_creators = observation_creators
         self.map = Map()
 
@@ -31,16 +32,16 @@ class Mapping:
             )
             descriptors = frame.observations.get_descriptors(observation_name)
             for landmark_position, descriptor in zip(landmark_positions, descriptors):
-                local_map.add_landmark(
-                    Landmark(
-                        self.landmarks_counter,
-                        landmark_position,
-                        descriptor,
-                        frame,
-                    ),
-                    observation_name,
-                )
-                self.landmarks_counter += 1
+                with self.landmarks_counter as current_id:
+                    local_map.add_landmark(
+                        Landmark(
+                            current_id,
+                            landmark_position,
+                            descriptor,
+                            frame,
+                        ),
+                        observation_name,
+                    )
         frame.local_map = local_map
 
     def initialize_map(self, frame):

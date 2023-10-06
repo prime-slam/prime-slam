@@ -1,4 +1,6 @@
 # from src.mapping.map import Map
+import numpy as np
+
 from src.observation.observations_batch import ObservationsBatch
 from src.sensor.sensor_data_base import SensorData
 
@@ -40,7 +42,7 @@ class Frame:
 
     def update_pose(self, new_pose):
         self.world_to_camera_transform = new_pose
-        self.camera_to_world_transform = new_pose.T
+        self.camera_to_world_transform = np.linalg.inv(new_pose)
         self._world_to_camera_rotation = self.world_to_camera_transform[:3, :3]
         self._world_to_camera_translation = self.world_to_camera_transform[:3, 3]
         self._camera_to_world_rotation = self.camera_to_world_transform[:3, :3]

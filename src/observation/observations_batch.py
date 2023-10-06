@@ -30,6 +30,9 @@ class ObservationsBatch:
     def observation_names(self):
         return self._names
 
+    def get_size(self, name):
+        return len(self._observations_batch[name])
+
     def get_observations(self, name):
         return self._observations_batch[name]
 
