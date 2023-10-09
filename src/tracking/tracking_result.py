@@ -1,11 +1,12 @@
-import numpy as np
-
 from dataclasses import dataclass
 
-from src.data_association import DataAssociation
+from src.tracking.data_association import DataAssociation
+from src.geometry.pose import Pose
+
+__all__ = ["TrackingResult"]
 
 
 @dataclass
 class TrackingResult:
-    pose: np.ndarray
+    pose: Pose
     associations: DataAssociation

@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 
+__all__ = ["Keyobject"]
+
 
 class Keyobject(ABC):
     @property

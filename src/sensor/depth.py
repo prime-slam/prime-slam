@@ -1,6 +1,8 @@
 import numpy as np
 
-from src.sensor.sensor_data_base import SensorData
+from src.sensor.sensor_data import SensorData
+
+__all__ = ["DepthImage"]
 
 
 class DepthImage(SensorData):

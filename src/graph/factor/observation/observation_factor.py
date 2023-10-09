@@ -1,7 +1,9 @@
 import numpy as np
 
-from src.graph.factor.factor_base import Factor
+from src.graph.factor.factor import Factor
 from src.sensor.rgbd import RGBDImage
+
+__all__ = ["ObservationFactor"]
 
 
 class ObservationFactor(Factor):

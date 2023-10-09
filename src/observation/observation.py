@@ -2,6 +2,8 @@ import numpy as np
 
 from src.observation.keyobject import Keyobject
 
+__all__ = ["Observation"]
+
 
 class Observation:
     def __init__(self, keyobject: Keyobject, descriptor: np.ndarray):

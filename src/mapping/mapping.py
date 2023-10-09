@@ -9,6 +9,8 @@ from src.observation.keyobject import Keyobject
 from src.observation.observation_creator import ObservationsCreator
 from src.utils.context_counter import ContextCounter
 
+__all__ = ["Mapping"]
+
 
 class Mapping:
     def __init__(self, observation_creators: List[ObservationsCreator]):

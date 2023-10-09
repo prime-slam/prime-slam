@@ -4,6 +4,8 @@ from typing import List
 from src.observation.keyobject import Keyobject
 from src.observation.observation import Observation
 
+__all__ = ["ObservationsBatch"]
+
 
 class ObservationsBatch:
     def __init__(

@@ -5,6 +5,8 @@ from src.graph.factor.odometry_factor import OdometryFactor
 from src.graph.node.landmark_node import LandmarkNode
 from src.graph.node.pose_node import PoseNode
 
+__all__ = ["FactorGraph"]
+
 
 class FactorGraph:
     def __init__(self):

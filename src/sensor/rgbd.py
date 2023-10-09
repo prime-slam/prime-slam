@@ -1,6 +1,8 @@
 from src.sensor.depth import DepthImage
 from src.sensor.rgb import RGBImage
-from src.sensor.sensor_data_base import SensorData
+from src.sensor.sensor_data import SensorData
+
+__all__ = ["RGBDImage"]
 
 
 class RGBDImage(SensorData):

@@ -2,7 +2,9 @@ import numpy as np
 
 from src.frame import Frame
 from src.mapping.map import Map
-from src.projection.projector_base import Projector
+from src.projection.projector import Projector
+
+__all__ = ["PointProjector"]
 
 
 class PointProjector(Projector):
@@ -93,7 +95,7 @@ class PointProjector(Projector):
             & (projected_map[:, 1] >= 0)
             & (projected_map[:, 1] < height)
             & depth_mask
-            & viewing_direction_mask
+            # & viewing_direction_mask
         )
 
         return projected_map, mask

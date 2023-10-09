@@ -1,4 +1,6 @@
-from src.graph.node.node_base import Node
+from src.graph.node.node import Node
+
+__all__ = ["LandmarkNode"]
 
 
 class LandmarkNode(Node):

@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 
+__all__ = ["SLAM"]
+
 
 class SLAM(ABC):
     @abstractmethod

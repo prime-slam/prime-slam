@@ -1,8 +1,12 @@
-from src.slam.backend import Backend
-from src.slam.frontend import Frontend
+from src.slam.backend.backend import Backend
+from src.slam.frontend.frontend import Frontend
 from src.slam.slam import SLAM
 
 
+__all__ = ["PrimeSLAM"]
+
+
+# TODO: reorganize sensor data interface
 class PrimeSLAM(SLAM):
     def __init__(
         self,

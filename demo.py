@@ -7,10 +7,14 @@ from pathlib import Path
 from skimage import io
 from skimage.feature import match_descriptors
 
-from src.description.points.orb_descriptor import ORBDescriptor
-from src.detection.points.orb import ORB
+
 from src.geometry.io import read_poses
-from src.keyframe_selection.every_nth_keyframe_selector import EveryNthKeyframeSelector
+from src.geometry.pose import Pose
+from src.observation.detection.points.orb import ORB
+from src.observation.description.points.orb_descriptor import ORBDescriptor
+from src.frame.keyframe_selection.every_nth_keyframe_selector import (
+    EveryNthKeyframeSelector,
+)
 from src.metrics import pose_error
 from src.observation.observation_creator import ObservationsCreator
 from src.projection.point_projection import PointProjector
@@ -21,9 +25,9 @@ from src.pose_estimation.rgbd_point_pose_estimator import (
 from src.sensor.depth import DepthImage
 from src.sensor.rgb import RGBImage
 from src.sensor.rgbd import RGBDImage
-from src.slam.backend_g2o import G2OPointSLAMBackend
+from src.slam.backend.backend_g2o import G2OPointSLAMBackend
 from src.slam.prime_slam import PrimeSLAM
-from src.slam.tracking_frontend import TrackingFrontend
+from src.slam.frontend.tracking_frontend import TrackingFrontend
 
 
 def get_point_cloud(points_3d):
@@ -137,7 +141,7 @@ if __name__ == "__main__":
     frames_indices = list(range(0, len(images_paths) - 1, step))
     gt_frames_poses = [gt_poses[i] for i in frames_indices]
     orb_creator = ObservationsCreator(
-        ORB(nfeatures=1000),
+        ORB(features_number=1000),
         ORBDescriptor(),
         partial(match_descriptors, metric="hamming", max_ratio=0.8),
         PointProjector(),
@@ -171,7 +175,7 @@ if __name__ == "__main__":
             angular_translation_error_,
             angular_rotation_error_,
             absolute_translation_error_,
-        ) = pose_error(gt_pose, est_pose)
+        ) = pose_error(gt_pose.transformation, est_pose)
         angular_translation_errors.append(angular_translation_error_)
         angular_rotation_errors.append(angular_rotation_error_)
         absolute_translation_errors.append(absolute_translation_error_)

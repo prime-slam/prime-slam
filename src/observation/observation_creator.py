@@ -2,12 +2,13 @@ import numpy as np
 
 from typing import Callable
 
-from src.description.descriptor_base import Descriptor
-from src.detection.detector_base import Detector
-from src.observation.observations_batch import ObservationsBatch
-from src.pose_estimation.estimator_base import PoseEstimator
-from src.projection.projector_base import Projector
-from src.sensor.sensor_data_base import SensorData
+from src.observation.description import Descriptor
+from src.observation.detection.detector import Detector
+from src.pose_estimation.estimator import PoseEstimator
+from src.projection.projector import Projector
+from src.sensor.sensor_data import SensorData
+
+__all__ = ["ObservationsCreator"]
 
 
 class ObservationsCreator:

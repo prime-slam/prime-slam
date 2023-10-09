@@ -2,7 +2,9 @@ import numpy as np
 
 from src.geometry.util import clip_lines
 from src.projection.point_projection import PointProjector
-from src.projection.projector_base import Projector
+from src.projection.projector import Projector
+
+__all__ = ["LineProjector"]
 
 
 class LineProjector(Projector):
@@ -23,7 +25,6 @@ class LineProjector(Projector):
 
         return np.column_stack([transformed_start_points_3d, transformed_end_points_2d])
 
-    # TODO: filter zero depth
     def back_project(
         self,
         lines_2d,

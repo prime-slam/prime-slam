@@ -1,4 +1,6 @@
-from src.graph.factor.factor_base import Factor
+from src.graph.factor.factor import Factor
+
+__all__ = ["OdometryFactor"]
 
 
 class OdometryFactor(Factor):

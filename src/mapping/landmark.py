@@ -4,6 +4,8 @@ from typing import List
 
 from src.frame import Frame
 
+__all__ = ["Landmark"]
+
 
 class Landmark:
     def __init__(self, identifier, position, feature_descriptor, keyframe: Frame):

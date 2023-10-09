@@ -2,18 +2,21 @@ import numpy as np
 
 from typing import List
 
-from src.data_association import DataAssociation
+from src.tracking.data_association import DataAssociation
 from src.frame import Frame
+from src.geometry.pose import Pose
 from src.mapping.map import Map
 from src.observation.observation_creator import ObservationsCreator
 from src.tracking.tracking_result import TrackingResult
+
+__all__ = ["Tracker"]
 
 
 class Tracker:
     def __init__(self, observation_creators: List[ObservationsCreator]):
         self.observation_creators = observation_creators
 
-    def track_map(self, frame: Frame, landmarks_map: Map):
+    def track_map(self, frame: Frame, landmarks_map: Map) -> TrackingResult:
         initial_absolute_pose = frame.world_to_camera_transform
         data_association = DataAssociation()
         for observation_creator in self.observation_creators:
@@ -62,14 +65,14 @@ class Tracker:
                 unmatched_target_indices=unmatched_target_indices,
             )
 
-            absolute_pose = absolute_pose_delta @ initial_absolute_pose
-        return TrackingResult(absolute_pose, data_association)
+            absolute_pose = absolute_pose_delta.transformation @ initial_absolute_pose
+        return TrackingResult(Pose(absolute_pose), data_association)
 
     def track(
         self,
         prev_frame: Frame,
         new_frame: Frame,
-    ):
+    ) -> TrackingResult:
         data_association = DataAssociation()
         for observation_creator in self.observation_creators:
             observation_name = observation_creator.observation_name
@@ -86,7 +89,8 @@ class Tracker:
                 )
             )
             initial_absolute_pose = (
-                initial_relative_pose @ prev_frame.world_to_camera_transform
+                initial_relative_pose.transformation
+                @ prev_frame.world_to_camera_transform
             )
 
             reference_indices = matches[:, 0]
@@ -107,4 +111,4 @@ class Tracker:
                 unmatched_target_indices=unmatched_target_indices,
             )
 
-        return TrackingResult(initial_absolute_pose, data_association)
+        return TrackingResult(Pose(initial_absolute_pose), data_association)

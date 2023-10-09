@@ -1,10 +1,13 @@
 import g2o
 import numpy as np
 
+from src.geometry.pose import Pose
 from src.geometry.util import clip_lines
 from src.frame import Frame
-from src.pose_estimation.estimator_base import PoseEstimator
+from src.pose_estimation.estimator import PoseEstimator
 from src.projection.line_projector import LineProjector
+
+__all__ = ["RGBDLinePoseEstimator"]
 
 
 class RGBDLinePoseEstimator(PoseEstimator):
@@ -29,7 +32,9 @@ class RGBDLinePoseEstimator(PoseEstimator):
         self.lines_3d_shape = (-1, 2, 3)
         self.projector = LineProjector()
 
-    def estimate_absolute_pose(self, new_keyframe: Frame, map_lines_3d, matches, name):
+    def estimate_absolute_pose(
+        self, new_keyframe: Frame, map_lines_3d, matches, name
+    ) -> Pose:
         new_lines_index = matches[:, 0]
         prev_lines_index = matches[:, 1]
         height, width = new_keyframe.sensor_measurement.depth.depth_map.shape[:2]
@@ -106,11 +111,11 @@ class RGBDLinePoseEstimator(PoseEstimator):
             if 2 * np.count_nonzero(inlier_mask) < self.edges_min_number:
                 break
 
-        return v1.estimate().matrix()
+        return Pose(v1.estimate().matrix())
 
     def estimate_relative_pose(
         self, new_keyframe: Frame, prev_keyframe: Frame, matches, name
-    ):
+    ) -> Pose:
         prev_lines = np.array(
             [
                 keyline.coordinates
@@ -131,7 +136,7 @@ class RGBDLinePoseEstimator(PoseEstimator):
         return self.estimate_absolute_pose(new_keyframe, prev_lines_3d, matches, name)
 
     @staticmethod
-    def __create_optimizer():
+    def __create_optimizer() -> g2o.SparseOptimizer:
         optimizer = g2o.SparseOptimizer()
         block_solver = g2o.BlockSolverSE3(g2o.LinearSolverEigenSE3())
         solver = g2o.OptimizationAlgorithmLevenberg(block_solver)

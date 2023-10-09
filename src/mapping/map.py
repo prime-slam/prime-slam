@@ -4,6 +4,8 @@ import numpy as np
 
 from src.mapping.landmark import Landmark
 
+__all__ = ["Map"]
+
 
 class Map:
     def __init__(self, landmarks: Dict[str, Dict[int, Landmark]] = None):

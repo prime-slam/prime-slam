@@ -5,6 +5,8 @@ import numpy as np
 
 from src.observation.keyobject import Keyobject
 
+__all__ = ["OpenCVKeypoint"]
+
 
 class OpenCVKeypoint(Keyobject):
     def __init__(self, keypoint: cv2.KeyPoint, uncertainty):
