@@ -1,3 +1,5 @@
+from itertools import compress
+
 import numpy as np
 
 from src.frame import Frame
@@ -60,19 +62,17 @@ class PointProjector(Projector):
 
         return projected_points
 
-    def get_visible_map_points(
+    def get_visible_map(
         self,
         landmarks_map: Map,
         frame: Frame,
-        observation_name,
     ):
-        landmark_positions = landmarks_map.get_positions(observation_name)
+        visible_map = Map()
+        landmark_positions = landmarks_map.get_positions()
         landmark_positions_cam = self.transform(
             landmark_positions, frame.world_to_camera_transform
         )
-        map_mean_viewing_directions = landmarks_map.get_mean_viewing_directions(
-            observation_name
-        )
+        map_mean_viewing_directions = landmarks_map.get_mean_viewing_directions()
         projected_map = self.project(
             landmark_positions_cam,
             frame.sensor_measurement.depth.intrinsics,
@@ -97,5 +97,7 @@ class PointProjector(Projector):
             & depth_mask
             # & viewing_direction_mask
         )
+        visible_landmarks = list(compress(landmarks_map.get_landmarks(), mask))
+        visible_map.add_landmarks(visible_landmarks)
 
-        return projected_map, mask
+        return visible_map

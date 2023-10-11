@@ -10,12 +10,18 @@ from skimage.feature import match_descriptors
 
 from src.geometry.io import read_poses
 from src.geometry.pose import Pose
+from src.mapping.landmark.landmark_creator.point_landmark_creator import (
+    PointLandmarkCreator,
+)
 from src.observation.detection.points.orb import ORB
 from src.observation.description.points.orb_descriptor import ORBDescriptor
 from src.frame.keyframe_selection.every_nth_keyframe_selector import (
     EveryNthKeyframeSelector,
 )
 from src.metrics import pose_error
+from src.observation.mask.multiple_mask import CoordinatesMultipleMask
+from src.observation.mask.point.point_clip_mask import PointClipMask
+from src.observation.mask.point.point_depth_filter import PointDepthFilter
 from src.observation.observation_creator import ObservationsCreator
 from src.projection.point_projection import PointProjector
 from src.geometry.transform import make_homogeneous_matrix
@@ -140,13 +146,16 @@ if __name__ == "__main__":
     step = args.frames_step
     frames_indices = list(range(0, len(images_paths) - 1, step))
     gt_frames_poses = [gt_poses[i] for i in frames_indices]
+    point_coordinates_masks = [PointClipMask(), PointDepthFilter()]
     orb_creator = ObservationsCreator(
         ORB(features_number=1000),
         ORBDescriptor(),
         partial(match_descriptors, metric="hamming", max_ratio=0.8),
         PointProjector(),
         RGBDPointPoseEstimator(intrinsics, 30),
+        CoordinatesMultipleMask(point_coordinates_masks),
         "orb",
+        landmark_creator=PointLandmarkCreator(),
     )
 
     images = [io.imread(path) for path in images_paths]

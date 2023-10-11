@@ -1,5 +1,6 @@
 import numpy as np
 
+from abc import ABC, abstractmethod
 from typing import List
 
 from src.frame import Frame
@@ -7,7 +8,7 @@ from src.frame import Frame
 __all__ = ["Landmark"]
 
 
-class Landmark:
+class Landmark(ABC):
     def __init__(self, identifier, position, feature_descriptor, keyframe: Frame):
         self._identifier = identifier
         self._position = position
@@ -23,7 +24,8 @@ class Landmark:
     def recalculate_mean_viewing_direction(self):
         origins = np.array([kf.origin for kf in self._associated_keyframes])
         self._mean_viewing_direction = np.sum(
-            self.__normalize(self._position - origins), axis=0
+            self.__normalize(self._calculate_viewing_directions(origins)),
+            axis=0,  # TODO: work only with points
         )
         self.__normalize_mean_viewing_direction()
 
@@ -52,12 +54,14 @@ class Landmark:
         return self._mean_viewing_direction
 
     def __add_viewing_direction(self, associated_keyframe):
-        viewing_direction = self._position - associated_keyframe.origin
+        viewing_direction = self._calculate_viewing_directions(
+            associated_keyframe.origin
+        )
         viewing_direction = viewing_direction / np.linalg.norm(viewing_direction)
         self._mean_viewing_direction += viewing_direction
         self.__normalize_mean_viewing_direction()
 
-    def __normalize(self, vector):
+    def __normalize(self, vector):  # TODO
         norm = np.linalg.norm(vector)
         if norm >= 1.0e-10:
             vector /= norm
@@ -67,3 +71,7 @@ class Landmark:
         norm = np.linalg.norm(self._mean_viewing_direction)
         if norm >= 1.0e-10:
             self._mean_viewing_direction /= np.linalg.norm(self._mean_viewing_direction)
+
+    @abstractmethod
+    def _calculate_viewing_directions(self, origins: np.ndarray):
+        pass

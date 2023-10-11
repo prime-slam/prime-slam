@@ -41,7 +41,7 @@ class TrackingFrontend(Frontend):
 
     @property
     def map(self):
-        return self.mapping.map
+        return self.mapping.multi_map
 
     @property
     def trajectory(self):
@@ -49,20 +49,14 @@ class TrackingFrontend(Frontend):
 
     def process_sensor_data(self, sensor_data: SensorData) -> Frame:
         with self.keyframe_counter as current_id:
-            keyobjects_batch = []
-            descriptors_batch = []
+            observation_batch = []
             names = []
             for observation_creator in self.observation_creators:
-                keyobjects, decriptors = observation_creator.create_observations(
-                    sensor_data
-                )
-                keyobjects_batch.append(keyobjects)
-                descriptors_batch.append(decriptors)
+                observations = observation_creator.create_observations(sensor_data)
+                observation_batch.append(observations)
                 names.append(observation_creator.observation_name)
 
-            observations_batch = ObservationsBatch(
-                keyobjects_batch, descriptors_batch, names
-            )
+            observations_batch = ObservationsBatch(observation_batch, names)
 
             frame = Frame(
                 observations_batch,
@@ -75,7 +69,8 @@ class TrackingFrontend(Frontend):
         else:
             tracking_result = self.__track(frame)
             frame.update_pose(tracking_result.pose)
-            self.mapping.create_local_map(frame)
+            local_map = self.mapping.create_local_map(frame)
+            frame.local_map = local_map
 
             if self.keyframe_selector.is_selected(frame):
                 frame.is_keyframe = True
@@ -99,14 +94,9 @@ class TrackingFrontend(Frontend):
                 observation_name
             )
             new_landmarks = new_frame.local_map.get_landmarks(observation_name)
-            depth_map = new_frame.sensor_measurement.depth.depth_map
 
             # add matched correspondences
             for new_index, map_index in zip(new_keypoints_index, map_keypoints_index):
-                x, y = keyobjects[new_index].coordinates.astype(int)
-                # TODO: remove from this
-                if depth_map[y, x] == 0:
-                    continue
                 self._graph.add_observation_factor(
                     pose_id=new_frame.identifier,
                     landmark_id=map_index,
@@ -141,7 +131,8 @@ class TrackingFrontend(Frontend):
         prev_frame = self.keyframes[-1]
         relative_tracking_result = self.tracker.track(prev_frame, new_frame)
         new_frame.update_pose(relative_tracking_result.pose)
-        map_tracking_result = self.tracker.track_map(new_frame, self.mapping.map)
+        visible_map = self.mapping.get_visible_multimap(new_frame)
+        map_tracking_result = self.tracker.track_map(new_frame, visible_map)
 
         return map_tracking_result
 
@@ -174,5 +165,7 @@ class TrackingFrontend(Frontend):
 
     def update_landmark_positions(self, new_positions, landmark_name):
         self._graph.update_landmarks_positions(new_positions)
-        self.mapping.map.update_position(new_positions, landmark_name)
-        self.mapping.map.recalculate_mean_viewing_directions(landmark_name)
+        self.mapping.multi_map.update_position(
+            new_positions, landmark_name
+        )  # TODO: add methods to mapping
+        self.mapping.multi_map.recalculate_mean_viewing_directions(landmark_name)

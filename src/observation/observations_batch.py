@@ -10,23 +10,21 @@ __all__ = ["ObservationsBatch"]
 class ObservationsBatch:
     def __init__(
         self,
-        keyobjects_batch: List[List[Keyobject]],
-        descriptors_batch: List[np.ndarray],
+        observations_batch: List[List[Observation]],
         names: List[str],
     ):
         self._observations_batch = {}
         self._descriptors_batch = {}
         self._keyobjects_batch = {}
         self._names = names
-        for keyobjects, descriptors, name in zip(
-            keyobjects_batch, descriptors_batch, names
-        ):
-            self._observations_batch[name] = [
-                Observation(keyobject, descriptor)
-                for keyobject, descriptor in zip(keyobjects, descriptors)
+        for observations, name in zip(observations_batch, names):
+            self._observations_batch[name] = observations
+            self._descriptors_batch[name] = np.array(
+                [observation.descriptor for observation in observations]
+            )
+            self._keyobjects_batch[name] = [
+                observation.keyobject for observation in observations
             ]
-            self._descriptors_batch[name] = descriptors
-            self._keyobjects_batch[name] = keyobjects
 
     @property
     def observation_names(self):

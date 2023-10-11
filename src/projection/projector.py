@@ -34,10 +34,9 @@ class Projector(ABC):
         pass
 
     @abstractmethod
-    def get_visible_map_points(
+    def get_visible_map(
         self,
         landmarks_map: Map,
         frame: Frame,
-        observation_name,
     ):
         pass
