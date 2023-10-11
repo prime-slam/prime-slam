@@ -18,7 +18,7 @@ class Mapping:
         self.multi_map = MultiMap()
 
     def create_local_map(self, frame: Frame):
-        local_map = MultiMap()
+        local_multimap = MultiMap()
         for observation_creator in self.observation_creators:
             observation_name = observation_creator.observation_name
             keyobjects: List[Keyobject] = frame.observations.get_keyobjects(
@@ -32,18 +32,22 @@ class Mapping:
                 frame.world_to_camera_transform,
             )
             descriptors = frame.observations.get_descriptors(observation_name)
+            local_map = observation_creator.map_creator.create(
+                observation_creator.projector
+            )
             for landmark_position, descriptor in zip(landmark_positions, descriptors):
                 with self.landmarks_counter as current_id:
                     local_map.add_landmark(
-                        observation_creator.create_landmark(
+                        local_map.create_landmark(
                             current_id,
                             landmark_position,
                             descriptor,
                             frame,
-                        ),
-                        observation_name,
+                        )
                     )
-        return local_map
+
+            local_multimap.add_map(observation_name, local_map)
+        return local_multimap
 
     def initialize_map(self, frame):
         local_map = self.create_local_map(frame)
@@ -67,9 +71,8 @@ class Mapping:
         visible_multimap = MultiMap()
         for observation_creator in self.observation_creators:
             observation_name = observation_creator.observation_name
-            projector = observation_creator.projector
-            visible_map = projector.get_visible_map(
-                self.multi_map.get_map(observation_name), frame
+            visible_map = self.multi_map.get_map(observation_name).get_visible_map(
+                frame
             )
             visible_multimap.add_map(observation_name, visible_map)
 

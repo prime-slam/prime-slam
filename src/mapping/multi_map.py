@@ -41,8 +41,6 @@ class MultiMap:
         return self._maps[landmark_name].get_landmarks()
 
     def add_landmark(self, landmark: Landmark, landmark_name):
-        if landmark_name not in self._maps:
-            self._maps[landmark_name] = Map()
         self._maps[landmark_name].add_landmark(landmark)
 
     def add_landmarks(self, landmarks: List[Landmark], landmark_name):

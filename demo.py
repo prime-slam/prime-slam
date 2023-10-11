@@ -13,6 +13,7 @@ from src.geometry.pose import Pose
 from src.mapping.landmark.landmark_creator.point_landmark_creator import (
     PointLandmarkCreator,
 )
+from src.mapping.map_creator.point_map_creator import PointMapCreator
 from src.observation.detection.points.orb import ORB
 from src.observation.description.points.orb_descriptor import ORBDescriptor
 from src.frame.keyframe_selection.every_nth_keyframe_selector import (
@@ -155,7 +156,7 @@ if __name__ == "__main__":
         RGBDPointPoseEstimator(intrinsics, 30),
         CoordinatesMultipleMask(point_coordinates_masks),
         "orb",
-        landmark_creator=PointLandmarkCreator(),
+        map_creator=PointMapCreator(),
     )
 
     images = [io.imread(path) for path in images_paths]

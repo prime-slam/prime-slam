@@ -1,15 +1,25 @@
-from typing import List, Dict
-
 import numpy as np
+
+from abc import ABC, abstractmethod
+from typing import List, Dict
 
 from src.frame import Frame
 from src.mapping.landmark.landmark import Landmark
+from src.mapping.landmark.landmark_creator.landmark_creator import LandmarkCreator
+from src.projection import Projector
 
 __all__ = ["Map"]
 
 
-class Map:
-    def __init__(self, landmarks: Dict[int, Landmark] = None):
+class Map(ABC):
+    def __init__(
+        self,
+        projector: Projector,
+        landmark_creator: LandmarkCreator,
+        landmarks: Dict[int, Landmark] = None,
+    ):
+        self._projector = projector
+        self._landmark_creator = landmark_creator
         self._landmarks = landmarks if landmarks is not None else {}
 
     def get_descriptors(self):
@@ -51,3 +61,15 @@ class Map:
     def recalculate_mean_viewing_directions(self):
         for landmark in self._landmarks.values():
             landmark.recalculate_mean_viewing_direction()
+
+    def create_landmark(self, current_id, landmark_position, descriptor, frame):
+        return self._landmark_creator.create(
+            current_id, landmark_position, descriptor, frame
+        )
+
+    @abstractmethod
+    def get_visible_map(
+        self,
+        frame: Frame,
+    ):
+        pass

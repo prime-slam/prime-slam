@@ -1,10 +1,9 @@
-from itertools import compress
-
 import numpy as np
 
-from typing import Callable, Type
+from itertools import compress
+from typing import Callable
 
-from src.mapping.landmark.landmark_creator.landmark_creator import LandmarkCreator
+from src.mapping.map_creator.map_creator import MapCreator
 from src.observation.description import Descriptor
 from src.observation.detection.detector import Detector
 from src.observation.mask.coordinates_mask import CoordinatesMask
@@ -26,7 +25,7 @@ class ObservationsCreator:  # TODO: change name
         pose_estimator: PoseEstimator,
         coordinates_mask: CoordinatesMask,
         observation_name: str,
-        landmark_creator: LandmarkCreator,
+        map_creator: MapCreator,
     ):
         self.detector = detector
         self.descriptor = descriptor
@@ -35,7 +34,7 @@ class ObservationsCreator:  # TODO: change name
         self.pose_estimator = pose_estimator
         self.coordinates_mask = coordinates_mask
         self._observation_name = observation_name
-        self.landmark_creator = landmark_creator
+        self.map_creator = map_creator
 
     def create_observations(self, sensor_data: SensorData):
         keyobjects = self.detector.detect(sensor_data)
@@ -49,11 +48,6 @@ class ObservationsCreator:  # TODO: change name
         mask = self.coordinates_mask.create(coordinates, sensor_data)
 
         return list(compress(observations, mask))
-
-    def create_landmark(self, current_id, landmark_position, descriptor, frame):
-        return self.landmark_creator.create(
-            current_id, landmark_position, descriptor, frame
-        )
 
     @property
     def observation_name(self):
