@@ -2,7 +2,9 @@ from typing import Dict
 
 from src.frame import Frame
 from src.mapping.landmark.landmark import Landmark
-from src.mapping.landmark.landmark_creator.line_landmark_creator import LineLandmarkCreator
+from src.mapping.landmark.landmark_creator.line_landmark_creator import (
+    LineLandmarkCreator,
+)
 from src.mapping.map import Map
 from src.projection import Projector
 
