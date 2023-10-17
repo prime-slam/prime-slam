@@ -7,29 +7,26 @@ from pathlib import Path
 from skimage import io
 from skimage.feature import match_descriptors
 
-from prime_slam.geometry.io import read_poses
-from prime_slam.observation.detection.points.orb import ORB
-from prime_slam.observation.description.points.orb_descriptor import ORBDescriptor
-from prime_slam.slam.frame.keyframe_selection.every_nth_keyframe_selector import (
-    EveryNthKeyframeSelector,
-)
+from prime_slam.geometry import read_poses, make_homogeneous_matrix
 from prime_slam.metrics.pose_error import pose_error
-from prime_slam.observation.filter.multiple_mask import MultipleFilter
-from prime_slam.observation.filter.point.point_clip_filter import PointClipFilter
-from prime_slam.observation.filter.point.point_depth_filter import PointDepthFilter
-from prime_slam.slam.mapping.map_creator.point_map_creator import PointMapCreator
-from prime_slam.slam.config.slam_config import SLAMConfig
-from prime_slam.projection.point_projection import PointProjector
-from prime_slam.geometry.transform import make_homogeneous_matrix
-from prime_slam.sensor.depth import DepthImage
-from prime_slam.sensor.rgb import RGBImage
-from prime_slam.sensor.rgbd import RGBDImage
-from prime_slam.slam.backend.backend_g2o import G2OPointSLAMBackend
-from prime_slam.slam.prime_slam import PrimeSLAM
-from prime_slam.slam.frontend.tracking_frontend import TrackingFrontend
-from prime_slam.slam.slam_module_factory import SLAMModuleFactory
-from prime_slam.slam.tracking.pose_estimation.rgbd_point_pose_estimator import (
+from prime_slam.observation import (
+    ORB,
+    ORBDescriptor,
+    MultipleFilter,
+    PointClipFilter,
+    PointDepthFilter,
+)
+from prime_slam.projection import PointProjector
+from prime_slam.sensor import RGBDImage, RGBImage, DepthImage
+from prime_slam.slam import (
+    SLAMConfig,
     RGBDPointPoseEstimator,
+    PointMapCreator,
+    EveryNthKeyframeSelector,
+    PrimeSLAM,
+    G2OPointSLAMBackend,
+    TrackingFrontend,
+    SLAMModuleFactory,
 )
 
 

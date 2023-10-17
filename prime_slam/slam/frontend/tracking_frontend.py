@@ -1,3 +1,17 @@
+# Copyright (c) 2023, Kirill Ivanov, Anastasiia Kornilova
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import numpy as np
 
 from typing import List
@@ -21,9 +35,9 @@ class TrackingFrontend(Frontend):
         self,
         module_factory: SLAMModuleFactory,
         keyframe_selector: KeyframeSelector,
-        initial_pose,
+        initial_pose: Pose,
     ):
-        self.initial_pose: Pose = initial_pose
+        self.initial_pose = initial_pose
         self._graph = FactorGraph()
         self.keyframe_counter = ContextCounter()
         self.observation_creator = module_factory.create_observation_creator()
@@ -88,9 +102,7 @@ class TrackingFrontend(Frontend):
                 observation_name
             )
             map_keypoints_index = map_association.get_matched_target(observation_name)
-            keyobjects: List[Keyobject] = new_frame.observations.get_keyobjects(
-                observation_name
-            )
+            keyobjects = new_frame.observations.get_keyobjects(observation_name)
             new_landmarks = new_frame.local_map.get_landmarks(observation_name)
 
             # add matched correspondences
