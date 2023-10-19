@@ -18,10 +18,10 @@ from prime_slam.observation.filter.observation_filter import ObservationsFilter
 from prime_slam.observation.observation import Observation
 from prime_slam.sensor.sensor_data import SensorData
 
-__all__ = ["MultipleFilter"]
+__all__ = ["FilterChain"]
 
 
-class MultipleFilter(ObservationsFilter):
+class FilterChain(ObservationsFilter):
     def __init__(self, filters: List[ObservationsFilter]):
         self.observation_filters = filters
 

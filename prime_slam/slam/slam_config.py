@@ -23,7 +23,7 @@ from prime_slam.observation.filter.observation_filter import ObservationsFilter
 from prime_slam.projection.projector import Projector
 from prime_slam.slam.mapping.map_creator.map_creator import MapCreator
 from prime_slam.slam.mapping.mapping_config import MappingConfig
-from prime_slam.slam.observation_creator.observation_config import ObservationConfig
+from prime_slam.observation.observation_creator import ObservationConfig
 from prime_slam.slam.tracking.tracking_config import TrackingConfig
 from prime_slam.slam.tracking.pose_estimation.estimator import PoseEstimator
 

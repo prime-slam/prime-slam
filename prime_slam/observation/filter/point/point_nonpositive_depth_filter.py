@@ -21,10 +21,10 @@ from prime_slam.observation.filter.observation_filter import ObservationsFilter
 from prime_slam.observation.observation import Observation
 from prime_slam.sensor.sensor_data import SensorData
 
-__all__ = ["PointDepthFilter"]
+__all__ = ["PointNonpositiveDepthFilter"]
 
 
-class PointDepthFilter(ObservationsFilter):
+class PointNonpositiveDepthFilter(ObservationsFilter):
     def apply(
         self, observations: List[Observation], sensor_data: SensorData
     ) -> List[Observation]:

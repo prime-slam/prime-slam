@@ -6,14 +6,14 @@ WORKDIR /prime_slam
 
 RUN apt-get update  \
     && apt-get install --no-install-recommends -y \
-    git \
     build-essential \
-    libx11-dev \
+    cmake \
+    git \
     libglib2.0-0 \
     libgl1 \
-    cmake \
     libeigen3-dev \
     libsuitesparse-dev \
+    libx11-dev \
     wget \
     && rm -rf /var/lib/apt/lists/*
 

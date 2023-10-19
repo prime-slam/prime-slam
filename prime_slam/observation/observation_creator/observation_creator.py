@@ -17,7 +17,9 @@ from typing import List
 from prime_slam.observation.observation import Observation
 from prime_slam.observation.observations_batch import ObservationsBatch
 from prime_slam.sensor.sensor_data import SensorData
-from prime_slam.slam.observation_creator.observation_config import ObservationConfig
+from prime_slam.observation.observation_creator.observation_config import (
+    ObservationConfig,
+)
 
 
 __all__ = ["ObservationCreator"]

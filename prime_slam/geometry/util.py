@@ -30,4 +30,4 @@ def clip_lines(lines: ArrayNx4[float], height: float, width: float) -> ArrayNx4[
 
 def normalize(vector: ArrayN[float], epsilon: float = 1.0e-10) -> ArrayN[float]:
     norm = np.linalg.norm(vector)
-    return vector if norm >= epsilon else vector
+    return vector / norm if norm >= epsilon else vector

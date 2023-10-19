@@ -12,9 +12,9 @@ from prime_slam.metrics.pose_error import pose_error
 from prime_slam.observation import (
     ORB,
     ORBDescriptor,
-    MultipleFilter,
-    PointClipFilter,
-    PointDepthFilter,
+    FilterChain,
+    PointClipFOVFilter,
+    PointNonpositiveDepthFilter,
 )
 from prime_slam.projection import PointProjector
 from prime_slam.sensor import RGBDImage, RGBImage, DepthImage
@@ -71,7 +71,7 @@ def create_orb_config():
         matcher=partial(match_descriptors, metric="hamming", max_ratio=0.8),
         projector=projector,
         pose_estimator=RGBDPointPoseEstimator(intrinsics, 30),
-        observations_filter=MultipleFilter(point_filters),
+        observations_filter=FilterChain(point_filters),
         map_creator=PointMapCreator(projector, name),
         observation_name=name,
     )
@@ -131,6 +131,13 @@ if __name__ == "__main__":
         type=bool,
     )
     parser.add_argument(
+        "--cloud-save-path",
+        "-S",
+        metavar="PATH",
+        help="path to the saved cloud",
+        default="resulting_cloud.pcd",
+    )
+    parser.add_argument(
         "--verbose",
         "-v",
         metavar="BOOL",
@@ -155,7 +162,7 @@ if __name__ == "__main__":
     step = args.frames_step
     frames_indices = list(range(0, len(images_paths) - 1, step))
     gt_frames_poses = [gt_poses[i] for i in frames_indices]
-    point_filters = [PointClipFilter(), PointDepthFilter()]
+    point_filters = [PointClipFOVFilter(), PointNonpositiveDepthFilter()]
     orb_config = create_orb_config()
 
     images = [io.imread(path) for path in images_paths]
@@ -204,6 +211,6 @@ if __name__ == "__main__":
     for i in range(1, len(clouds)):
         resulting_cloud += clouds[i]
     if args.save_cloud:
-        o3d.io.write_point_cloud("resulting_cloud.pcd", resulting_cloud)
+        o3d.io.write_point_cloud(args.cloud_save_path, resulting_cloud)
 
     o3d.visualization.draw_geometries([resulting_cloud])

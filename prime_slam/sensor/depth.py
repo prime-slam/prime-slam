@@ -29,4 +29,3 @@ class DepthImage(SensorData):
         self.depth_map = depth_map
         self.intrinsics = intrinsics
         self.depth_scale = depth_scale
-        self.bf = 400

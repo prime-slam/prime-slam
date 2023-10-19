@@ -35,6 +35,7 @@ class G2OPointSLAMBackend(Backend):
         self.cx = intrinsics[0, 2]
         self.cy = intrinsics[1, 2]
         self.optimizer_iterations_number = optimizer_iterations_number
+        self.bf = 400
 
     def optimize(self, graph: FactorGraph, verbose=False):
         optimizer = self.__create_optimizer()
@@ -75,8 +76,12 @@ class G2OPointSLAMBackend(Backend):
 
             edge.set_vertex(0, optimizer.vertex(landmark_id))
             edge.set_vertex(1, optimizer.vertex(pose_id))
-            edge.set_measurement(observation_factor.observation)
-
+            stereo_observation = self.__convert_to_stereo(
+                observation_factor.observation,
+                observation_factor.depth_map / observation_factor.depth_scale,
+                self.bf,
+            )
+            edge.set_measurement(stereo_observation)
             edge.set_information(np.eye(3) * observation_factor.information)
             kernel = g2o.RobustKernelHuber()
             edge.set_robust_kernel(kernel)
@@ -85,7 +90,7 @@ class G2OPointSLAMBackend(Backend):
             edge.fy = self.fy
             edge.cx = self.cx
             edge.cy = self.cy
-            edge.bf = observation_factor.bf
+            edge.bf = self.bf
             optimizer.add_edge(edge)
             edges.append(edge)
 
@@ -97,6 +102,12 @@ class G2OPointSLAMBackend(Backend):
         new_points = np.array([v.estimate() for v in landmark_vertices])
 
         return new_poses, new_points
+
+    @staticmethod
+    def __convert_to_stereo(coords, depth_map: np.ndarray, bf):
+        x, y = coords
+        d = depth_map[int(y), int(x)]
+        return np.array([x, y, x - bf / d])
 
     @staticmethod
     def __create_optimizer():

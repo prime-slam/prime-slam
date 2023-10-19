@@ -33,6 +33,8 @@ optional arguments:
                         step between keyframes (default: 20)
   --save-cloud BOOL, -s BOOL
                         save resulting cloud (default: True)
+  --cloud-save-path PATH, -S PATH
+                        path to the saved cloud (default: resulting_cloud.pcd)
   --verbose BOOL, -v BOOL
                         print metrics (default: True)
 ```
