@@ -11,34 +11,27 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import numpy as np
 
 from abc import ABC, abstractmethod
 
+__all__ = ["RGBDDataset"]
 
-__all__ = ["Projector"]
 
-
-class Projector(ABC):
+class RGBDDataset(ABC):
     @abstractmethod
-    def transform(self, objects_3d, transformation_matrix):
+    def __getitem__(self, index):
         pass
 
     @abstractmethod
-    def project(
-        self,
-        object_3d,
-        intrinsics: np.ndarray,
-        extrinsics: np.ndarray,
-    ):
+    def __len__(self):
         pass
 
+    @property
     @abstractmethod
-    def back_project(
-        self,
-        object_2d,
-        depth_map: np.ndarray,
-        intrinsics: np.ndarray,
-        extrinsics: np.ndarray,
-    ):
+    def gt_poses(self):
+        pass
+
+    @property
+    @abstractmethod
+    def intrinsics(self):
         pass

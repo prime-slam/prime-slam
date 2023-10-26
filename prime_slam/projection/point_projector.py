@@ -33,7 +33,6 @@ class PointProjector(Projector):
         self,
         points_2d,
         depth_map: np.ndarray,
-        depth_scale: float,
         intrinsics: np.ndarray,
         extrinsics: np.ndarray,
     ):
@@ -44,7 +43,7 @@ class PointProjector(Projector):
         x, y = points_2d[:, 0].astype(int), points_2d[:, 1].astype(int)
         depths = depth_map[y, x]
         nonzero_depths = depths != 0
-        z_3d = depths / depth_scale
+        z_3d = depths
         x_3d = np.zeros(len(z_3d))
         y_3d = np.zeros(len(z_3d))
         x_3d[nonzero_depths] = (x[nonzero_depths] - cx) / fx * z_3d[nonzero_depths]

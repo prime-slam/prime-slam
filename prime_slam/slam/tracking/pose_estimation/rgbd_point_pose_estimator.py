@@ -126,10 +126,9 @@ class RGBDPointPoseEstimator(PoseEstimator):
             ]
         )
         prev_depth_map = prev_keyframe.sensor_measurement.depth.depth_map
-        prev_depth_scale = prev_keyframe.sensor_measurement.depth.depth_scale
         prev_intrinsics = prev_keyframe.sensor_measurement.depth.intrinsics
         prev_keypoints_3d = self.projector.back_project(
-            prev_keypoints, prev_depth_map, prev_depth_scale, prev_intrinsics, np.eye(4)
+            prev_keypoints, prev_depth_map, prev_intrinsics, np.eye(4)
         )
 
         return self.estimate_absolute_pose(

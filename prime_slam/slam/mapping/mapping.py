@@ -42,7 +42,6 @@ class Mapping:
             landmark_positions = config.projector.back_project(
                 np.array([keyobject.coordinates for keyobject in keyobjects]),
                 frame.sensor_measurement.depth.depth_map,
-                frame.sensor_measurement.depth.depth_scale,
                 frame.sensor_measurement.depth.intrinsics,
                 frame.world_to_camera_transform,
             )

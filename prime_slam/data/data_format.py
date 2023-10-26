@@ -11,34 +11,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import numpy as np
 
-from abc import ABC, abstractmethod
+from enum import Enum
 
-
-__all__ = ["Projector"]
+__all__ = ["DataFormat"]
 
 
-class Projector(ABC):
-    @abstractmethod
-    def transform(self, objects_3d, transformation_matrix):
-        pass
+class DataFormat(Enum):
+    tum = 0
+    icl = 1
+    icl_tum = 2
 
-    @abstractmethod
-    def project(
-        self,
-        object_3d,
-        intrinsics: np.ndarray,
-        extrinsics: np.ndarray,
-    ):
-        pass
-
-    @abstractmethod
-    def back_project(
-        self,
-        object_2d,
-        depth_map: np.ndarray,
-        intrinsics: np.ndarray,
-        extrinsics: np.ndarray,
-    ):
-        pass
+    @staticmethod
+    def to_string(delimiter: str = ", "):
+        return delimiter.join(dist.name for dist in DataFormat)
