@@ -31,6 +31,8 @@ class Landmark(ABC):
         self._mean_viewing_direction = np.array([0, 0, 0], dtype=float)
         self._associated_keyframes: List[Frame] = []
         self.add_associated_keyframe(keyframe)
+        self.frames_from_last_insert = 0
+        self._is_bad = False
 
     def add_associated_keyframe(self, keyframe: Frame):
         self._associated_keyframes.append(keyframe)
@@ -43,6 +45,10 @@ class Landmark(ABC):
             axis=0,
         )
         self._mean_viewing_direction = normalize(self._mean_viewing_direction)
+
+    @property
+    def is_bad(self):
+        return self._is_bad
 
     @property
     def identifier(self):
@@ -67,6 +73,11 @@ class Landmark(ABC):
     @property
     def mean_viewing_direction(self):
         return self._mean_viewing_direction
+
+    def update_state(self):
+        self.frames_from_last_insert += 1
+        if self.frames_from_last_insert >= 2:
+            self._is_bad = len(self._associated_keyframes) < 2
 
     def __add_viewing_direction(self, associated_keyframe):
         viewing_direction = self._calculate_viewing_directions(

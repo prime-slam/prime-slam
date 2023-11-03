@@ -37,8 +37,14 @@ def angular_translation_error(
     first_translation: Translation, second_translation: Translation
 ) -> float:
     n = np.linalg.norm(first_translation) * np.linalg.norm(second_translation)
-    return np.rad2deg(
-        np.arccos(np.clip(np.dot(first_translation, second_translation) / n, -1.0, 1.0))
+    return (
+        np.rad2deg(
+            np.arccos(
+                np.clip(np.dot(first_translation, second_translation) / n, -1.0, 1.0)
+            )
+        )
+        if n > 0
+        else 0
     )
 
 

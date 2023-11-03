@@ -91,3 +91,7 @@ class Map(ABC):
     @abstractmethod
     def create_landmark(self, current_id, landmark_position, descriptor, frame):
         pass
+
+    @abstractmethod
+    def cull(self):
+        pass

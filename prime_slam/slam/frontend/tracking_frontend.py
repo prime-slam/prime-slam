@@ -72,31 +72,31 @@ class TrackingFrontend(Frontend):
         if frame.identifier == 0:
             self.__initialize(frame)
         else:
-            tracking_result = self.__track(frame)
-            frame.update_pose(tracking_result.pose)
+            relative_tracking_result, map_tracking_result = self.__track(frame)
+            frame.update_pose(map_tracking_result.pose)
             local_map = self.mapping.create_local_map(frame)
             frame.local_map = local_map
 
-            if self.keyframe_selector.is_selected(frame):
+            if self.keyframe_selector.is_selected(
+                frame, relative_tracking_result.associations
+            ):
                 frame.is_keyframe = True
-                self.__insert_new_keyframe(frame, tracking_result.associations)
+                self.__insert_new_keyframe(frame, map_tracking_result.associations)
         return frame
 
+    def update_graph(self):
+        self._graph.update()
+
     def update_poses(self, new_poses):
-        self._graph.update_poses(new_poses)
         for kf, new_pose in zip(self.keyframes, new_poses):
             kf.update_pose(Pose(new_pose))
 
     def update_landmark_positions(self, new_positions, landmark_name):
-        self._graph.update_landmarks_positions(new_positions)
         self.mapping.update_landmark_positions(new_positions, landmark_name)
 
     def __insert_new_keyframe(self, new_frame: Frame, map_association: DataAssociation):
         self.keyframes.append(new_frame)
-        self._graph.add_pose_node(
-            node_id=new_frame.identifier,
-            pose=new_frame.world_to_camera_transform,
-        )
+        self._graph.add_pose_node(new_frame)
         for observation_name in new_frame.observations.observation_names:
             new_keypoints_index = map_association.get_matched_reference(
                 observation_name
@@ -127,7 +127,7 @@ class TrackingFrontend(Frontend):
                 landmark_position = landmark.position
                 if np.logical_or.reduce(np.isnan(landmark_position), axis=-1):
                     continue
-                self._graph.add_landmark_node(landmark_id, landmark_position)
+                self._graph.add_landmark_node(landmark)
                 self._graph.add_observation_factor(
                     pose_id=new_frame.identifier,
                     landmark_id=landmark_id,
@@ -137,6 +137,9 @@ class TrackingFrontend(Frontend):
                 )
                 self.mapping.add_landmark(landmark, observation_name)
 
+        self.mapping.cull_landmarks()
+        self.update_graph()
+
     def __track(self, new_frame: Frame):
         prev_frame = self.keyframes[-1]
         relative_tracking_result = self.tracker.track(prev_frame, new_frame)
@@ -144,22 +147,20 @@ class TrackingFrontend(Frontend):
         visible_map = self.mapping.get_visible_multimap(new_frame)
         map_tracking_result = self.tracker.track_map(new_frame, visible_map)
 
-        return map_tracking_result
+        return relative_tracking_result, map_tracking_result
 
     def __initialize(self, keyframe: Frame):
         keyframe.update_pose(self.initial_pose)
         self.keyframes.append(keyframe)
         self.mapping.initialize_map(keyframe)
-        self._graph.add_pose_node(
-            node_id=keyframe.identifier, pose=keyframe.world_to_camera_transform
-        )
+        self._graph.add_pose_node(keyframe)
         for observation_name in keyframe.local_map.landmark_names:
             keyobjects: List[Keyobject] = keyframe.observations.get_keyobjects(
                 observation_name
             )
             landmarks = keyframe.local_map.get_landmarks(observation_name)
             for landmark, keyobject in zip(landmarks, keyobjects):
-                self._graph.add_landmark_node(landmark.identifier, landmark.position)
+                self._graph.add_landmark_node(landmark)
                 self._graph.add_observation_factor(
                     pose_id=keyframe.identifier,
                     landmark_id=landmark.identifier,

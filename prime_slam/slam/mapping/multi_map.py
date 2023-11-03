@@ -74,3 +74,6 @@ class MultiMap:
 
     def recalculate_mean_viewing_directions(self, landmark_name):
         self._maps[landmark_name].recalculate_mean_viewing_directions()
+
+    def cull_landmarks(self, landmark_name):
+        self._maps[landmark_name].cull()

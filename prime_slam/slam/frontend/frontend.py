@@ -34,6 +34,10 @@ class Frontend(ABC):
     def update_landmark_positions(self, new_positions, landmark_name):
         pass
 
+    @abstractmethod
+    def update_graph(self):
+        pass
+
     @property
     @abstractmethod
     def graph(self) -> FactorGraph:

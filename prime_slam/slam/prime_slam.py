@@ -47,3 +47,4 @@ class PrimeSLAM(SLAM):
         new_poses, new_landmark_positions = self.backend.optimize(self.frontend.graph)
         self.frontend.update_poses(new_poses)
         self.frontend.update_landmark_positions(new_landmark_positions, landmark_name)
+        self.frontend.update_graph()

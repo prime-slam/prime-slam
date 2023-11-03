@@ -18,8 +18,6 @@ optional arguments:
   --data PATH, -d PATH  path to data (default: data/)
   --data-format STR, -D STR
                         data format: tum, icl, icl_tum (default: icl_tum)
-  --frames-step NUM, -f NUM
-                        step between keyframes (default: 20)
   --save-cloud BOOL, -s BOOL
                         save resulting cloud (default: True)
   --cloud-save-path PATH, -S PATH
