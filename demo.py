@@ -1,13 +1,26 @@
+# Copyright (c) 2023, Kirill Ivanov, Anastasiia Kornilova
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import argparse
 import numpy as np
 import open3d as o3d
 
 from functools import partial
 from pathlib import Path
-from skimage import io
 from skimage.feature import match_descriptors
 
-from prime_slam.geometry import read_poses, make_homogeneous_matrix
+from prime_slam.data import DatasetFactory, DataFormat
 from prime_slam.metrics.pose_error import pose_error
 from prime_slam.observation import (
     ORB,
@@ -17,7 +30,6 @@ from prime_slam.observation import (
     PointNonpositiveDepthFilter,
 )
 from prime_slam.projection import PointProjector
-from prime_slam.sensor import RGBDImage, RGBImage, DepthImage
 from prime_slam.slam import (
     SLAMConfig,
     RGBDPointPoseEstimator,
@@ -49,7 +61,6 @@ def create_point_map(keyframes, intrinsics, color=(1, 0, 0)):
         projector.back_project(
             point_coordinates.copy(),
             depth.depth_map,
-            depth.depth_scale,
             intrinsics,
             abs_pose,
         )
@@ -62,7 +73,7 @@ def create_point_map(keyframes, intrinsics, color=(1, 0, 0)):
     ]
 
 
-def create_orb_config():
+def create_orb_config(intrinsics):
     name = "orb"
     projector = PointProjector()
     return SLAMConfig(
@@ -85,34 +96,14 @@ if __name__ == "__main__":
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
-        "--imgs", "-i", metavar="PATH", help="path to images", default="rgb/"
-    )
-
-    parser.add_argument(
-        "--depths", "-d", metavar="PATH", help="path to depth maps", default="depth/"
-    )
-
-    parser.add_argument(
-        "--intrinsics",
-        "-I",
-        metavar="PATH",
-        help="path to intrinsics file",
-        default="intrinsics.txt",
+        "--data", "-d", metavar="PATH", help="path to data", default="data/"
     )
     parser.add_argument(
-        "--poses",
-        "-p",
-        metavar="PATH",
-        help="path to gt poses (for evaluation)",
-        default="poses.txt",
-    )
-    parser.add_argument(
-        "--depth-scaler",
+        "--data-format",
         "-D",
-        metavar="NUM",
-        help="depth map scaler",
-        default=5000,
-        type=float,
+        metavar="STR",
+        help=f"data format: {DataFormat.to_string()}",
+        default=DataFormat.icl_tum.name,
     )
     parser.add_argument(
         "--frames-step",
@@ -146,43 +137,30 @@ if __name__ == "__main__":
         type=bool,
     )
     args = parser.parse_args()
-    images_path = Path(args.imgs)
-    depth_path = Path(args.depths)
-    intrinsics_path = Path(args.intrinsics)
-    gt_poses_path = Path(args.poses)
+    data_format = args.data_format
+    data_path = Path(args.data)
+    dataset = DatasetFactory.create(data_format, data_path)
 
-    gt_poses = read_poses(gt_poses_path)
+    gt_poses = dataset.gt_poses
     init_pose = gt_poses[0]
-
-    images_paths = sorted(images_path.iterdir())
-    depth_paths = sorted(depth_path.iterdir())
-    intrinsics = make_homogeneous_matrix(np.genfromtxt(intrinsics_path))
-    depth_scaler = args.depth_scaler
-    images_number = len(depth_paths)
+    images_number = len(dataset)
     step = args.frames_step
-    frames_indices = list(range(0, len(images_paths) - 1, step))
+    frames_indices = list(range(0, images_number - 1, step))
     gt_frames_poses = [gt_poses[i] for i in frames_indices]
+
     point_filters = [PointClipFOVFilter(), PointNonpositiveDepthFilter()]
-    orb_config = create_orb_config()
-
-    images = [io.imread(path) for path in images_paths]
-    depths = [io.imread(path) for path in depth_paths]
-
-    frames = [
-        RGBDImage(RGBImage(img), DepthImage(depth, intrinsics, depth_scaler))
-        for img, depth in zip(images, depths)
-    ]
+    orb_config = create_orb_config(dataset.intrinsics)
     keyframe_selector = EveryNthKeyframeSelector(n=step)
     slam_configs = [orb_config]
     slam = PrimeSLAM(
-        backend=G2OPointSLAMBackend(intrinsics),
+        backend=G2OPointSLAMBackend(dataset.intrinsics),
         frontend=TrackingFrontend(
             SLAMModuleFactory(slam_configs), keyframe_selector, init_pose
         ),
     )
+    for data in dataset:
+        slam.process_sensor_data(data)
 
-    for frame in frames:
-        slam.process_sensor_data(frame)
     poses = slam.trajectory
     angular_translation_errors = []
     angular_rotation_errors = []
@@ -206,7 +184,7 @@ if __name__ == "__main__":
             f"Median absolute_translation_error: {np.median(absolute_translation_errors)}"
         )
 
-    clouds = create_point_map(slam.frontend.keyframes, intrinsics)
+    clouds = create_point_map(slam.frontend.keyframes, dataset.intrinsics)
     resulting_cloud = clouds[0]
     for i in range(1, len(clouds)):
         resulting_cloud += clouds[i]

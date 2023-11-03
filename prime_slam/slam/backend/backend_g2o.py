@@ -78,7 +78,7 @@ class G2OPointSLAMBackend(Backend):
             edge.set_vertex(1, optimizer.vertex(pose_id))
             stereo_observation = self.__convert_to_stereo(
                 observation_factor.observation,
-                observation_factor.depth_map / observation_factor.depth_scale,
+                observation_factor.depth_map,
                 self.bf,
             )
             edge.set_measurement(stereo_observation)

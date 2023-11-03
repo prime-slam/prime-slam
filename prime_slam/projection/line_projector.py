@@ -44,7 +44,6 @@ class LineProjector(Projector):
         self,
         lines_2d,
         depth_map: np.ndarray,
-        depth_scale: float,
         intrinsics: np.ndarray,
         extrinsics: np.ndarray,
     ):
@@ -57,10 +56,10 @@ class LineProjector(Projector):
         start_points_2d = lines_2d[:, 0]
         end_points_2d = lines_2d[:, 1]
         start_points_3d = self.point_projector.back_project(
-            start_points_2d, depth_map, depth_scale, intrinsics, extrinsics
+            start_points_2d, depth_map, intrinsics, extrinsics
         )
         end_points_3d = self.point_projector.back_project(
-            end_points_2d, depth_map, depth_scale, intrinsics, extrinsics
+            end_points_2d, depth_map, intrinsics, extrinsics
         )
 
         return np.column_stack([start_points_3d, end_points_3d])

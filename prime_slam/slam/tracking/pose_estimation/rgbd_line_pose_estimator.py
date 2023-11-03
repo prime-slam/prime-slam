@@ -138,13 +138,12 @@ class RGBDLinePoseEstimator(PoseEstimator):
         )
 
         prev_depth_map = prev_keyframe.sensor_measurement.depth.depth_map
-        prev_depth_scale = prev_keyframe.sensor_measurement.depth.depth_scale
         prev_intrinsics = prev_keyframe.sensor_measurement.depth.intrinsics
         height, width = prev_depth_map.shape[:2]
 
         prev_lines = clip_lines(prev_lines, width=width, height=height).astype(int)
         prev_lines_3d = self.projector.back_project(
-            prev_lines, prev_depth_map, prev_depth_scale, prev_intrinsics, np.eye(4)
+            prev_lines, prev_depth_map, prev_intrinsics, np.eye(4)
         )
 
         return self.estimate_absolute_pose(new_keyframe, prev_lines_3d, matches, name)

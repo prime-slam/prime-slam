@@ -11,34 +11,29 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import numpy as np
 
-from abc import ABC, abstractmethod
+from prime_slam.typing.hints import Transformation
 
+__all__ = ["TUM_DEPTH_FACTOR", "TUM_DEFAULT_INTRINSICS", "ICL_NUIM_DEFAULT_INTRINSICS"]
 
-__all__ = ["Projector"]
+TUM_DEPTH_FACTOR: float = 5000
 
+TUM_DEFAULT_INTRINSICS: Transformation = np.array(
+    [
+        [525.0, 0, 319.5, 0],
+        [0, 525.0, 239.5, 0],
+        [0, 0, 1, 0],
+        [0, 0, 0, 1],
+    ]
+)
 
-class Projector(ABC):
-    @abstractmethod
-    def transform(self, objects_3d, transformation_matrix):
-        pass
-
-    @abstractmethod
-    def project(
-        self,
-        object_3d,
-        intrinsics: np.ndarray,
-        extrinsics: np.ndarray,
-    ):
-        pass
-
-    @abstractmethod
-    def back_project(
-        self,
-        object_2d,
-        depth_map: np.ndarray,
-        intrinsics: np.ndarray,
-        extrinsics: np.ndarray,
-    ):
-        pass
+ICL_NUIM_DEFAULT_INTRINSICS = np.array(
+    [
+        [481.2, 0, 319.5, 0],
+        [0, -480.0, 239.5, 0],
+        [0, 0, 1, 0],
+        [0, 0, 0, 1],
+    ]
+)

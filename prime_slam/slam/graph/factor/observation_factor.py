@@ -36,7 +36,6 @@ class ObservationFactor(Factor):
         )
         self._keyobject_2d = keyobject_position_2d
         self.depth_map = sensor_measurement.depth.depth_map
-        self.depth_scale = sensor_measurement.depth.depth_scale
 
     @property
     def observation(self):
