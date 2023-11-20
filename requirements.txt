@@ -82,6 +82,7 @@ stack-data==0.6.2
 tenacity==8.2.3
 threadpoolctl==3.2.0
 tifffile==2023.9.26
+torch==1.11.0
 tqdm==4.66.1
 traitlets==5.10.1
 typing_extensions==4.8.0

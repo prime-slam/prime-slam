@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from prime_slam.slam.graph.node.node import Node
 from prime_slam.slam.frame.frame import Frame
+from prime_slam.slam.graph.node.node import Node
 
 __all__ = ["PoseNode"]
 

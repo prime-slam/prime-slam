@@ -14,11 +14,11 @@
 
 from typing import List
 
+from prime_slam.projection.projector import Projector
 from prime_slam.slam.frame.frame import Frame
 from prime_slam.slam.mapping.landmark.landmark import Landmark
 from prime_slam.slam.mapping.landmark.line_landmark import LineLandmark
 from prime_slam.slam.mapping.map import Map
-from prime_slam.projection.projector import Projector
 
 __all__ = ["LineMap"]
 

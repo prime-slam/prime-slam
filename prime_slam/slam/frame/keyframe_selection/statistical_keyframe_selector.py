@@ -48,7 +48,6 @@ class StatisticalKeyframeSelector(KeyframeSelector):
             )
 
         if selected:
-            print(self.step_counter)
             self.step_counter = 0
 
         return selected

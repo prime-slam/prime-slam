@@ -12,20 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np
-
-from collections.abc import Callable
 from dataclasses import dataclass
 
 from prime_slam.observation.description.descriptor import Descriptor
 from prime_slam.observation.detection.detector import Detector
 from prime_slam.observation.filter.observation_filter import ObservationsFilter
+from prime_slam.observation.observation_creator import ObservationConfig
 from prime_slam.projection.projector import Projector
 from prime_slam.slam.mapping.map_creator.map_creator import MapCreator
 from prime_slam.slam.mapping.mapping_config import MappingConfig
-from prime_slam.observation.observation_creator import ObservationConfig
-from prime_slam.slam.tracking.tracking_config import TrackingConfig
+from prime_slam.slam.tracking.matching.frame_matcher import ObservationsMatcher
+from prime_slam.slam.tracking.matching.map_matcher import MapMatcher
 from prime_slam.slam.tracking.pose_estimation.estimator import PoseEstimator
+from prime_slam.slam.tracking.tracking_config import TrackingConfig
 
 __all__ = ["SLAMConfig"]
 
@@ -34,7 +33,8 @@ __all__ = ["SLAMConfig"]
 class SLAMConfig:
     detector: Detector
     descriptor: Descriptor
-    matcher: Callable[[np.ndarray, np.ndarray], np.ndarray]
+    frame_matcher: ObservationsMatcher
+    map_matcher: MapMatcher
     projector: Projector
     pose_estimator: PoseEstimator
     observations_filter: ObservationsFilter
@@ -44,7 +44,8 @@ class SLAMConfig:
     @property
     def tracking_config(self):
         return TrackingConfig(
-            matcher=self.matcher,
+            frame_matcher=self.frame_matcher,
+            map_matcher=self.map_matcher,
             projector=self.projector,
             pose_estimator=self.pose_estimator,
             observation_name=self.observation_name,

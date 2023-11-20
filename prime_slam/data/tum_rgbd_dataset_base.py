@@ -13,18 +13,18 @@
 # limitations under the License.
 
 import numpy as np
+from scipy.spatial.transform import Rotation as R
 
 from abc import ABC
 from pathlib import Path
-from scipy.spatial.transform import Rotation as R
 from typing import List
 
 from prime_slam.data.rgbd_dataset import RGBDDataset
-from prime_slam.geometry import make_euclidean_transform, Pose
+from prime_slam.geometry import Pose, make_euclidean_transform
 from prime_slam.typing.hints import Transformation
 
 
-class TUMRGBDRGBDDatasetBase(RGBDDataset, ABC):
+class TUMRGBDDatasetBase(RGBDDataset, ABC):
     def __init__(
         self,
         data_path: Path,

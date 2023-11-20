@@ -13,15 +13,13 @@
 # limitations under the License.
 
 import numpy as np
+from scipy.spatial.transform import Rotation as R
 
 from pathlib import Path
-from scipy.spatial.transform import Rotation as R
 from typing import List
 
 from prime_slam.geometry.pose import Pose
-from prime_slam.geometry.transform import (
-    make_euclidean_transform,
-)
+from prime_slam.geometry.transform import make_euclidean_transform
 
 __all__ = ["read_poses"]
 

@@ -12,21 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np
+from abc import ABC, abstractmethod
 
-from prime_slam.typing.hints import ArrayN, ArrayNx4
+from prime_slam.observation.observations_batch import ObservationData
 
-__all__ = ["clip_lines", "normalize"]
-
-
-def clip_lines(lines: ArrayNx4[float], height: float, width: float) -> ArrayNx4[float]:
-    x_index = [0, 2]
-    lines[..., x_index] = np.clip(lines[..., x_index], 0, width - 1)
-    y_index = [1, 3]
-    lines[..., y_index] = np.clip(lines[..., y_index], 0, height - 1)
-    return lines
+__all__ = ["ObservationsMatcher"]
 
 
-def normalize(vector: ArrayN[float], epsilon: float = 1.0e-10) -> ArrayN[float]:
-    norm = np.linalg.norm(vector)
-    return vector / norm if norm >= epsilon else vector
+class ObservationsMatcher(ABC):
+    @abstractmethod
+    def match_observations(
+        self, prev_observations: ObservationData, new_observations: ObservationData
+    ):
+        pass

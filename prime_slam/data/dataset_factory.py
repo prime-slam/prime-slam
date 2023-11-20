@@ -14,10 +14,10 @@
 
 from pathlib import Path
 
+from prime_slam.data.data_format import DataFormat
+from prime_slam.data.icl_nuim_dataset import ICLNUIMRGBDDataset
 from prime_slam.data.rgbd_dataset import RGBDDataset
 from prime_slam.data.tum_rgbd_dataset import TUMRGBDDataset
-from prime_slam.data.icl_nuim_dataset import ICLNUIMRGBDDataset
-from prime_slam.data.data_format import DataFormat
 
 __all__ = ["DatasetFactory"]
 

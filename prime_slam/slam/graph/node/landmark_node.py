@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from prime_slam.slam.mapping.landmark.landmark import Landmark
 from prime_slam.slam.graph.node.node import Node
+from prime_slam.slam.mapping.landmark.landmark import Landmark
 
 __all__ = ["LandmarkNode"]
 

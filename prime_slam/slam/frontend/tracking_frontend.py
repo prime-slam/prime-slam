@@ -16,15 +16,15 @@ import numpy as np
 
 from typing import List
 
-from prime_slam.slam.slam_module_factory import SLAMModuleFactory
-from prime_slam.slam.tracking.data_association import DataAssociation
-from prime_slam.slam.frame.frame import Frame
 from prime_slam.geometry.pose import Pose
-from prime_slam.slam.graph.factor_graph import FactorGraph
-from prime_slam.slam.frame.keyframe_selection.keyframe_selector import KeyframeSelector
 from prime_slam.observation.keyobject import Keyobject
 from prime_slam.sensor.sensor_data import SensorData
+from prime_slam.slam.frame.frame import Frame
+from prime_slam.slam.frame.keyframe_selection.keyframe_selector import KeyframeSelector
 from prime_slam.slam.frontend.frontend import Frontend
+from prime_slam.slam.graph.factor_graph import FactorGraph
+from prime_slam.slam.slam_module_factory import SLAMModuleFactory
+from prime_slam.slam.tracking.data_association import DataAssociation
 from prime_slam.utils.context_counter import ContextCounter
 
 __all__ = ["TrackingFrontend"]
@@ -74,12 +74,12 @@ class TrackingFrontend(Frontend):
         else:
             relative_tracking_result, map_tracking_result = self.__track(frame)
             frame.update_pose(map_tracking_result.pose)
-            local_map = self.mapping.create_local_map(frame)
-            frame.local_map = local_map
 
             if self.keyframe_selector.is_selected(
                 frame, relative_tracking_result.associations
             ):
+                local_map = self.mapping.create_local_map(frame)
+                frame.local_map = local_map
                 frame.is_keyframe = True
                 self.__insert_new_keyframe(frame, map_tracking_result.associations)
         return frame
@@ -93,16 +93,20 @@ class TrackingFrontend(Frontend):
 
     def update_landmark_positions(self, new_positions, landmark_name):
         self.mapping.update_landmark_positions(new_positions, landmark_name)
+        self.mapping.recalculate_mean_viewing_directions()
 
     def __insert_new_keyframe(self, new_frame: Frame, map_association: DataAssociation):
         self.keyframes.append(new_frame)
         self._graph.add_pose_node(new_frame)
         for observation_name in new_frame.observations.observation_names:
+            observation_data = new_frame.observations.get_observation_data(
+                observation_name
+            )
             new_keypoints_index = map_association.get_matched_reference(
                 observation_name
             )
             map_keypoints_index = map_association.get_matched_target(observation_name)
-            keyobjects = new_frame.observations.get_keyobjects(observation_name)
+            keyobjects = observation_data.keyobjects
             new_landmarks = new_frame.local_map.get_landmarks(observation_name)
 
             # add matched correspondences
@@ -149,22 +153,23 @@ class TrackingFrontend(Frontend):
 
         return relative_tracking_result, map_tracking_result
 
-    def __initialize(self, keyframe: Frame):
-        keyframe.update_pose(self.initial_pose)
-        self.keyframes.append(keyframe)
-        self.mapping.initialize_map(keyframe)
-        self._graph.add_pose_node(keyframe)
-        for observation_name in keyframe.local_map.landmark_names:
-            keyobjects: List[Keyobject] = keyframe.observations.get_keyobjects(
+    def __initialize(self, frame: Frame):
+        frame.is_keyframe = True
+        frame.update_pose(self.initial_pose)
+        self.keyframes.append(frame)
+        self.mapping.initialize_map(frame)
+        self._graph.add_pose_node(frame)
+        for observation_name in frame.local_map.landmark_names:
+            keyobjects: List[Keyobject] = frame.observations.get_observation_data(
                 observation_name
-            )
-            landmarks = keyframe.local_map.get_landmarks(observation_name)
+            ).keyobjects
+            landmarks = frame.local_map.get_landmarks(observation_name)
             for landmark, keyobject in zip(landmarks, keyobjects):
                 self._graph.add_landmark_node(landmark)
                 self._graph.add_observation_factor(
-                    pose_id=keyframe.identifier,
+                    pose_id=frame.identifier,
                     landmark_id=landmark.identifier,
                     observation=keyobject.coordinates,
-                    sensor_measurement=keyframe.sensor_measurement,
+                    sensor_measurement=frame.sensor_measurement,
                     information=keyobject.uncertainty,
                 )

@@ -15,7 +15,6 @@ import numpy as np
 
 from abc import ABC, abstractmethod
 
-
 __all__ = ["Projector"]
 
 

@@ -14,46 +14,83 @@
 
 import numpy as np
 
-from typing import List
+from typing import Dict, List
 
 from prime_slam.observation.keyobject import Keyobject
 from prime_slam.observation.observation import Observation
+from prime_slam.sensor.rgbd import RGBDImage
 from prime_slam.typing.hints import ArrayNxM
 
-__all__ = ["ObservationsBatch"]
+__all__ = ["ObservationsBatch", "ObservationData"]
+
+
+class ObservationData:
+    def __init__(
+        self,
+        observations: List[Observation],
+        observation_name: str,
+        sensor_measurement: RGBDImage,
+    ):
+        self._name = observation_name
+        self._sensor_measurement = sensor_measurement
+
+        self._descriptors = np.array(
+            [observation.descriptor for observation in observations]
+        )
+        self._coordinates = np.array(
+            [observation.keyobject.coordinates for observation in observations]
+        )
+        self._uncertainties = np.array(
+            [observation.keyobject.uncertainty for observation in observations]
+        )
+        self._keyobjects = [observation.keyobject for observation in observations]
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def sensor_measurement(self):
+        return self._sensor_measurement
+
+    @property
+    def descriptors(self) -> ArrayNxM[float]:
+        return self._descriptors
+
+    @property
+    def coordinates(self) -> ArrayNxM[float]:
+        return self._coordinates
+
+    @property
+    def uncertainties(self) -> ArrayNxM[float]:
+        return self._uncertainties
+
+    @property
+    def keyobjects(self) -> List[Keyobject]:
+        return self._keyobjects
+
+    def __len__(self):
+        return len(self.keyobjects)
 
 
 class ObservationsBatch:
     def __init__(
         self,
-        observations_batch: List[List[Observation]],
-        names: List[str],
+        observations_batch: Dict[str, ObservationData] = None,
     ):
-        self._observations_batch = {}
-        self._descriptors_batch = {}
-        self._keyobjects_batch = {}
-        self._names = names
-        for observations, name in zip(observations_batch, names):
-            self._observations_batch[name] = observations
-            self._descriptors_batch[name] = np.array(
-                [observation.descriptor for observation in observations]
-            )
-            self._keyobjects_batch[name] = [
-                observation.keyobject for observation in observations
-            ]
+        self._observations_batch = (
+            observations_batch if observations_batch is not None else {}
+        )
+
+    def __getitem__(self, index):
+        return self._observations_batch[index]
+
+    def __setitem__(self, index, value):
+        self._observations_batch[index] = value
+
+    def get_observation_data(self, observation_name: str) -> ObservationData:
+        return self._observations_batch[observation_name]
 
     @property
     def observation_names(self) -> List[str]:
-        return self._names
-
-    def get_size(self, name) -> int:
-        return len(self._observations_batch[name])
-
-    def get_observations(self, name) -> List[Observation]:
-        return self._observations_batch[name]
-
-    def get_descriptors(self, name) -> ArrayNxM[float]:
-        return self._descriptors_batch[name]
-
-    def get_keyobjects(self, name) -> List[Keyobject]:
-        return self._keyobjects_batch[name]
+        return list(self._observations_batch.keys())

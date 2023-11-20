@@ -11,28 +11,39 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import cv2
 import numpy as np
 
+from pathlib import Path
 from typing import List
 
+from external.superpoint.demo_superpoint import SuperPointFrontend
 from prime_slam.observation.detection.detector import Detector
 from prime_slam.observation.keyobject import Keyobject
-from prime_slam.observation.opencv_keypoint import OpenCVKeypoint
+from prime_slam.observation.keypoint import Keypoint
 from prime_slam.sensor.rgbd import RGBDImage
-from prime_slam.typing.hints import ArrayN
 
-__all__ = ["OpenCVPointDetector"]
+__all__ = ["SuperPoint"]
 
 
-class OpenCVPointDetector(Detector):
-    def __init__(self, detector, squared_sigma_levels: ArrayN[float]):
-        self.detector = detector
-        self.squared_sigma_levels = squared_sigma_levels
-        self.inv_squared_sigma_levels = 1 / squared_sigma_levels
+class SuperPoint(Detector):
+    def __init__(
+        self, weights_path: Path = Path("external/superpoint/superpoint_v1.pth")
+    ):
+        self.model = SuperPointFrontend(
+            weights_path=weights_path,
+            nms_dist=4,
+            conf_thresh=0.015,
+            nn_thresh=0.7,
+            cuda=True,
+        )
 
     def detect(self, sensor_data: RGBDImage) -> List[Keyobject]:
         gray = cv2.cvtColor(np.array(sensor_data.rgb.image), cv2.COLOR_RGB2GRAY)
-        keypoints = self.detector.detect(gray, None)
-        return [OpenCVKeypoint(kp, 1) for kp in keypoints]
+        scaled_gray = gray.astype(np.float32) / 255.0
+        points_data, _, _ = self.model.run(scaled_gray)
+
+        return [
+            Keypoint(x, y, uncertainty)
+            for x, y, uncertainty in zip(points_data[0], points_data[1], points_data[2])
+        ]

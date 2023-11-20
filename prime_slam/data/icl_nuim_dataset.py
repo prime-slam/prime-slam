@@ -13,17 +13,17 @@
 # limitations under the License.
 
 import numpy as np
+from skimage import io
 
 from pathlib import Path
-from skimage import io
-from typing import List, Dict
+from typing import Dict, List
 
 from prime_slam.data.constants import ICL_NUIM_DEFAULT_INTRINSICS, TUM_DEPTH_FACTOR
 from prime_slam.data.rgbd_dataset import RGBDDataset
-from prime_slam.data.tum_rgbd_dataset_base import TUMRGBDRGBDDatasetBase
+from prime_slam.data.tum_rgbd_dataset_base import TUMRGBDDatasetBase
 from prime_slam.geometry import Pose, normalize
-from prime_slam.sensor import RGBDImage, RGBImage, DepthImage
-from prime_slam.typing.hints import Transformation, ArrayN
+from prime_slam.sensor import DepthImage, RGBDImage, RGBImage
+from prime_slam.typing.hints import ArrayN, Transformation
 
 __all__ = ["ICLNUIMRGBDDataset"]
 
@@ -141,7 +141,7 @@ class ICLNUIMRGBDDataset(RGBDDataset):
         return params
 
 
-class ICLNUIMTUMFormatDataset(TUMRGBDRGBDDatasetBase):
+class ICLNUIMTUMFormatDataset(TUMRGBDDatasetBase):
     def __init__(
         self,
         data_path: Path,

@@ -3,22 +3,21 @@ import prime_slam.slam.frame as frame_package
 import prime_slam.slam.frontend as frontend_package
 import prime_slam.slam.graph as graph_package
 import prime_slam.slam.mapping as mapping_package
-import prime_slam.slam.tracking as tracking_package
 import prime_slam.slam.prime_slam as prime_slam_module
 import prime_slam.slam.slam as slam_module
-import prime_slam.slam.slam_module_factory as slam_module_factory_module
 import prime_slam.slam.slam_config as config_module
-
+import prime_slam.slam.slam_module_factory as slam_module_factory_module
+import prime_slam.slam.tracking as tracking_package
 from prime_slam.slam.backend import *
-from prime_slam.slam.slam_config import *
 from prime_slam.slam.frame import *
 from prime_slam.slam.frontend import *
 from prime_slam.slam.graph import *
 from prime_slam.slam.mapping import *
-from prime_slam.slam.tracking import *
 from prime_slam.slam.prime_slam import *
 from prime_slam.slam.slam import *
+from prime_slam.slam.slam_config import *
 from prime_slam.slam.slam_module_factory import *
+from prime_slam.slam.tracking import *
 
 __all__ = (
     backend_package.__all__

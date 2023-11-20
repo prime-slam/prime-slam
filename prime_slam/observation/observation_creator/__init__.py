@@ -1,6 +1,5 @@
 import prime_slam.observation.observation_creator.observation_config as observation_config_module
 import prime_slam.observation.observation_creator.observation_creator as observation_creator_module
-
 from prime_slam.observation.observation_creator.observation_config import *
 from prime_slam.observation.observation_creator.observation_creator import *
 

@@ -14,8 +14,7 @@
 
 import numpy as np
 
-from prime_slam.typing.hints import Array3x3, Array4x4, Array3
-
+from prime_slam.typing.hints import Array3, Array3x3, Array4x4
 
 __all__ = ["make_euclidean_transform", "make_homogeneous_matrix"]
 

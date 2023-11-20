@@ -17,7 +17,7 @@ import numpy as np
 from typing import Optional
 
 from prime_slam.geometry.transform import make_euclidean_transform
-from prime_slam.typing.hints import Rotation, Translation, Transformation
+from prime_slam.typing.hints import Rotation, Transformation, Translation
 
 __all__ = ["Pose"]
 

@@ -14,19 +14,26 @@
 
 import numpy as np
 
-from prime_slam.typing.hints import ArrayN, ArrayNx4
+from prime_slam.observation.keyobject import Keyobject
+from prime_slam.typing.hints import ArrayN
 
-__all__ = ["clip_lines", "normalize"]
-
-
-def clip_lines(lines: ArrayNx4[float], height: float, width: float) -> ArrayNx4[float]:
-    x_index = [0, 2]
-    lines[..., x_index] = np.clip(lines[..., x_index], 0, width - 1)
-    y_index = [1, 3]
-    lines[..., y_index] = np.clip(lines[..., y_index], 0, height - 1)
-    return lines
+__all__ = ["Keypoint"]
 
 
-def normalize(vector: ArrayN[float], epsilon: float = 1.0e-10) -> ArrayN[float]:
-    norm = np.linalg.norm(vector)
-    return vector / norm if norm >= epsilon else vector
+class Keypoint(Keyobject):
+    def __init__(self, x, y, uncertainty: float):
+        self._x = x
+        self._y = y
+        self._uncertainty = uncertainty
+
+    @property
+    def data(self) -> ArrayN[float]:
+        return self.coordinates
+
+    @property
+    def coordinates(self) -> ArrayN[float]:
+        return np.array([self._x, self._y])
+
+    @property
+    def uncertainty(self) -> float:
+        return self._uncertainty

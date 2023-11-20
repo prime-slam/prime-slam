@@ -15,10 +15,11 @@
 import g2o
 import numpy as np
 
-from prime_slam.slam.frame.frame import Frame
 from prime_slam.geometry.pose import Pose
-from prime_slam.slam.tracking.pose_estimation.estimator import PoseEstimator
+from prime_slam.observation.observations_batch import ObservationData
 from prime_slam.projection.point_projector import PointProjector
+from prime_slam.slam.tracking.pose_estimation.estimator import PoseEstimator
+from prime_slam.typing.hints import ArrayNx2, ArrayNx3
 
 __all__ = ["RGBDPointPoseEstimator"]
 
@@ -43,19 +44,17 @@ class RGBDPointPoseEstimator(PoseEstimator):
         self.projector = PointProjector()
 
     def estimate_absolute_pose(
-        self, new_keyframe: Frame, map_3d_points, matches, name
+        self,
+        new_observation_data: ObservationData,
+        map_3d_points: ArrayNx3[float],
+        matches: ArrayNx2[float],
     ) -> Pose:
-        new_keypoints = np.array(
-            [
-                keypoint.coordinates
-                for keypoint in new_keyframe.observations.get_keyobjects(name)
-            ]
-        )
+        new_keypoints = new_observation_data.coordinates
         new_keypoints_index = matches[:, 0]
-        prev_keypoints_index = matches[:, 1]
+        map_points_index = matches[:, 1]
 
         kpts_obs = new_keypoints[new_keypoints_index]
-        map_3d_points = map_3d_points[prev_keypoints_index]
+        map_3d_points = map_3d_points[map_points_index]
 
         nan_mask = np.logical_or.reduce(
             np.isinf(map_3d_points) | np.isnan(map_3d_points),
@@ -117,22 +116,20 @@ class RGBDPointPoseEstimator(PoseEstimator):
         return Pose(v1.estimate().matrix())
 
     def estimate_relative_pose(
-        self, new_keyframe: Frame, prev_keyframe: Frame, matches, name
+        self,
+        new_observation_data: ObservationData,
+        prev_observation_data: ObservationData,
+        matches: ArrayNx2[float],
     ) -> Pose:
-        prev_keypoints = np.array(
-            [
-                keypoint.coordinates
-                for keypoint in prev_keyframe.observations.get_keyobjects(name)
-            ]
-        )
-        prev_depth_map = prev_keyframe.sensor_measurement.depth.depth_map
-        prev_intrinsics = prev_keyframe.sensor_measurement.depth.intrinsics
+        prev_keypoints = prev_observation_data.coordinates
+        prev_depth_map = prev_observation_data.sensor_measurement.depth.depth_map
+        prev_intrinsics = prev_observation_data.sensor_measurement.depth.intrinsics
         prev_keypoints_3d = self.projector.back_project(
             prev_keypoints, prev_depth_map, prev_intrinsics, np.eye(4)
         )
 
         return self.estimate_absolute_pose(
-            new_keyframe, prev_keypoints_3d, matches, name
+            new_observation_data, prev_keypoints_3d, matches
         )
 
     @staticmethod

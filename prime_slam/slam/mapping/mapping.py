@@ -12,15 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np
-
 from typing import List
-
 
 from prime_slam.slam.frame.frame import Frame
 from prime_slam.slam.mapping.mapping_config import MappingConfig
 from prime_slam.slam.mapping.multi_map import MultiMap
-from prime_slam.observation.keyobject import Keyobject
 from prime_slam.utils.context_counter import ContextCounter
 
 __all__ = ["Mapping"]
@@ -36,16 +32,14 @@ class Mapping:
         local_multimap = MultiMap()
         for config in self.mapping_configs:
             observation_name = config.observation_name
-            keyobjects: List[Keyobject] = frame.observations.get_keyobjects(
-                observation_name
-            )
+            observation_data = frame.observations.get_observation_data(observation_name)
             landmark_positions = config.projector.back_project(
-                np.array([keyobject.coordinates for keyobject in keyobjects]),
+                observation_data.coordinates,
                 frame.sensor_measurement.depth.depth_map,
                 frame.sensor_measurement.depth.intrinsics,
                 frame.world_to_camera_transform,
             )
-            descriptors = frame.observations.get_descriptors(observation_name)
+            descriptors = observation_data.descriptors
             local_map = config.map_creator.create()
             for landmark_position, descriptor in zip(landmark_positions, descriptors):
                 with self.landmarks_counter as current_id:
@@ -93,6 +87,12 @@ class Mapping:
             visible_multimap.add_map(visible_map)
 
         return visible_multimap
+
+    def recalculate_mean_viewing_directions(self):
+        for config in self.mapping_configs:
+            observation_name = config.observation_name
+            current_map = self.multi_map.get_map(observation_name)
+            current_map.recalculate_mean_viewing_directions()
 
     def cull_landmarks(self):
         for config in self.mapping_configs:

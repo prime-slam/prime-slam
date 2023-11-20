@@ -16,10 +16,10 @@ import numpy as np
 
 from typing import List
 
-from prime_slam.slam.tracking.data_association import DataAssociation
-from prime_slam.slam.frame.frame import Frame
 from prime_slam.geometry.pose import Pose
+from prime_slam.slam.frame.frame import Frame
 from prime_slam.slam.mapping.multi_map import MultiMap
+from prime_slam.slam.tracking.data_association import DataAssociation
 from prime_slam.slam.tracking.tracking_config import TrackingConfig
 from prime_slam.slam.tracking.tracking_result import TrackingResult
 
@@ -30,36 +30,35 @@ class Tracker:
     def __init__(self, tracking_configs: List[TrackingConfig]):
         self.tracking_configs = tracking_configs
 
-    def track_map(self, frame: Frame, landmarks_map: MultiMap) -> TrackingResult:
+    def track_map(self, frame: Frame, landmarks_multimap: MultiMap) -> TrackingResult:
         initial_absolute_pose = frame.world_to_camera_transform
         data_association = DataAssociation()
         for config in self.tracking_configs:
             observation_name = config.observation_name
-
-            landmarks = landmarks_map.get_landmarks(observation_name)
-            landmark_positions = landmarks_map.get_positions(observation_name)
-            landmark_descriptors = landmarks_map.get_descriptors(observation_name)
+            observations = frame.observations.get_observation_data(observation_name)
+            landmarks_map = landmarks_multimap.get_map(observation_name)
+            landmarks = landmarks_map.landmarks
+            landmark_positions = landmarks_map.positions
             landmark_positions_cam = config.projector.transform(
                 landmark_positions, initial_absolute_pose
             )
-            matches = config.matcher(
-                frame.observations.get_descriptors(observation_name),
-                landmark_descriptors,
+            matches = config.map_matcher.match_map(
+                landmarks_map,
+                observations,
             )
             absolute_pose_delta = config.pose_estimator.estimate_absolute_pose(
-                frame,
+                observations,
                 landmark_positions_cam,
                 matches,
-                observation_name,
             )
             reference_indices = matches[:, 0]
             target_indices = [landmarks[index].identifier for index in matches[:, 1]]
             unmatched_reference_indices = np.setdiff1d(
-                np.arange(frame.observations.get_size(observation_name)),
+                np.arange(len(observations)),
                 reference_indices,
             )
             unmatched_target_indices = np.setdiff1d(
-                landmarks_map.get_size(observation_name),
+                np.arange(len(landmarks_map)),
                 target_indices,
             )
             data_association.set_associations(
@@ -81,15 +80,21 @@ class Tracker:
         data_association = DataAssociation()
         for config in self.tracking_configs:
             observation_name = config.observation_name
-            matches = config.matcher(
-                new_frame.observations.get_descriptors(observation_name),
-                prev_frame.observations.get_descriptors(observation_name),
+            prev_observations = prev_frame.observations.get_observation_data(
+                observation_name
+            )
+            new_observations = new_frame.observations.get_observation_data(
+                observation_name
+            )
+
+            matches = config.frame_matcher.match_observations(
+                prev_observations,
+                new_observations,
             )
             initial_relative_pose = config.pose_estimator.estimate_relative_pose(
-                new_frame,
-                prev_frame,
+                new_observations,
+                prev_observations,
                 matches,
-                observation_name,
             )
             initial_absolute_pose = (
                 initial_relative_pose.transformation
@@ -98,14 +103,16 @@ class Tracker:
 
             reference_indices = matches[:, 0]
             target_indices = matches[:, 1]
+
             unmatched_reference_indices = np.setdiff1d(
-                np.arange(new_frame.observations.get_size(observation_name)),
+                np.arange(len(new_observations)),
                 reference_indices,
             )
             unmatched_target_indices = np.setdiff1d(
-                np.arange(prev_frame.observations.get_size(observation_name)),
+                np.arange(len(prev_observations)),
                 target_indices,
             )
+
             data_association.set_associations(
                 observation_name,
                 reference_indices=reference_indices,

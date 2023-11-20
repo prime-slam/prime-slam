@@ -14,8 +14,8 @@
 
 from dataclasses import dataclass
 
-from prime_slam.slam.tracking.data_association import DataAssociation
 from prime_slam.geometry.pose import Pose
+from prime_slam.slam.tracking.data_association import DataAssociation
 
 __all__ = ["TrackingResult"]
 

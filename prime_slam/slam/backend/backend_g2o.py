@@ -17,13 +17,11 @@ import numpy as np
 
 from typing import List
 
-from prime_slam.slam.graph.factor.observation_factor import (
-    ObservationFactor,
-)
+from prime_slam.slam.backend.backend import Backend
+from prime_slam.slam.graph.factor.observation_factor import ObservationFactor
 from prime_slam.slam.graph.factor_graph import FactorGraph
 from prime_slam.slam.graph.node.landmark_node import LandmarkNode
 from prime_slam.slam.graph.node.pose_node import PoseNode
-from prime_slam.slam.backend.backend import Backend
 
 __all__ = ["G2OPointSLAMBackend"]
 
@@ -42,8 +40,8 @@ class G2OPointSLAMBackend(Backend):
         pose_nodes: List[PoseNode] = graph.pose_nodes
         landmark_nodes: List[LandmarkNode] = graph.landmark_nodes
         observation_factors: List[ObservationFactor] = graph.observation_factors
-        pose_vertices = []
-        landmark_vertices = []
+        pose_vertices = {}
+        landmark_vertices = {}
         edges = []
         max_id = 0
         for pose_node in pose_nodes:
@@ -56,7 +54,7 @@ class G2OPointSLAMBackend(Backend):
             vertex.set_id(pose_node.identifier)
             vertex.set_fixed(pose_node.identifier == 0)
             optimizer.add_vertex(vertex)
-            pose_vertices.append(vertex)
+            pose_vertices[pose_node.identifier] = vertex
             max_id = max(max_id, pose_node.identifier)
         max_id = max_id + 1
         for landmark_node in landmark_nodes:
@@ -67,7 +65,7 @@ class G2OPointSLAMBackend(Backend):
             vertex.set_marginalized(True)
             vertex.set_fixed(False)
             optimizer.add_vertex(vertex)
-            landmark_vertices.append(vertex)
+            landmark_vertices[landmark_node.identifier] = vertex
 
         for observation_factor in observation_factors:
             landmark_id = observation_factor.to_node + max_id
@@ -98,8 +96,8 @@ class G2OPointSLAMBackend(Backend):
         optimizer.initialize_optimization()
         optimizer.optimize(self.optimizer_iterations_number)
 
-        new_poses = np.array([v.estimate().matrix() for v in pose_vertices])
-        new_points = np.array([v.estimate() for v in landmark_vertices])
+        new_poses = np.array([v.estimate().matrix() for v in pose_vertices.values()])
+        new_points = np.array([v.estimate() for v in landmark_vertices.values()])
 
         return new_poses, new_points
 
