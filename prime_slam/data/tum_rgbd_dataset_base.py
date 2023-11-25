@@ -42,9 +42,13 @@ class TUMRGBDDatasetBase(RGBDDataset, ABC):
         depth_factor: float = 5000,
     ):
         self.rgb_base_path = data_path / rgb_directory
-        self.rgb_paths = sorted(self.rgb_base_path.iterdir())
+        self.rgb_paths = sorted(
+            self.rgb_base_path.iterdir(), key=lambda path: float(path.stem)
+        )
         self.depth_base_path = data_path / depth_directory
-        self.depth_paths = sorted(self.depth_base_path.iterdir())
+        self.depth_paths = sorted(
+            self.depth_base_path.iterdir(), key=lambda path: float(path.stem)
+        )
         self.gt_poses_path = data_path / gt_poses_file
         self._gt_poses = self.read_gt_poses(self.gt_poses_path)
         self._intrinsics = intrinsics

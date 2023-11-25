@@ -37,10 +37,15 @@ class ICLNUIMRGBDDataset(RGBDDataset):
         camera_parameters_extension: str = ".txt",
         intrinsics: Transformation = ICL_NUIM_DEFAULT_INTRINSICS,
     ):
-        self.rgb_paths = sorted(data_path.rglob(f"*{rgb_extension}"))
-        self.depth_paths = sorted(data_path.rglob(f"*{depth_extension}"))
+        self.rgb_paths = sorted(
+            data_path.rglob(f"*{rgb_extension}"), key=lambda path: float(path.stem)
+        )
+        self.depth_paths = sorted(
+            data_path.rglob(f"*{depth_extension}"), key=lambda path: float(path.stem)
+        )
         self.camera_param_paths = sorted(
-            data_path.rglob(f"*{camera_parameters_extension}")
+            data_path.rglob(f"*{camera_parameters_extension}"),
+            key=lambda path: float(path.stem),
         )
         self._gt_poses = self.__create_gt_poses()
         self._intrinsics = intrinsics

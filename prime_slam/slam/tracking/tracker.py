@@ -32,6 +32,7 @@ class Tracker:
 
     def track_map(self, frame: Frame, landmarks_multimap: MultiMap) -> TrackingResult:
         initial_absolute_pose = frame.world_to_camera_transform
+        absolute_pose = initial_absolute_pose
         data_association = DataAssociation()
         for config in self.tracking_configs:
             observation_name = config.observation_name
@@ -78,6 +79,7 @@ class Tracker:
         new_frame: Frame,
     ) -> TrackingResult:
         data_association = DataAssociation()
+        initial_absolute_pose = np.eye(4)
         for config in self.tracking_configs:
             observation_name = config.observation_name
             prev_observations = prev_frame.observations.get_observation_data(
@@ -86,7 +88,6 @@ class Tracker:
             new_observations = new_frame.observations.get_observation_data(
                 observation_name
             )
-
             matches = config.frame_matcher.match_observations(
                 prev_observations,
                 new_observations,

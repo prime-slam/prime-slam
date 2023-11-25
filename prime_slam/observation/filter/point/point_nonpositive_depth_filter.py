@@ -28,6 +28,8 @@ class PointNonpositiveDepthFilter(ObservationsFilter):
     def apply(
         self, observations: List[Observation], sensor_data: SensorData
     ) -> List[Observation]:
+        if len(observations) == 0:
+            return observations
         coordinates = np.array(
             [observation.keyobject.coordinates for observation in observations],
             dtype=int,

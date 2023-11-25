@@ -92,7 +92,7 @@ def create_orb_config(intrinsics):
     projector = PointProjector()
     point_filters = [PointClipFOVFilter(), PointNonpositiveDepthFilter()]
     matcher = DefaultMatcher(
-        partial(match_descriptors, metric="hamming", max_ratio=0.8)
+        partial(match_descriptors, metric="hamming", max_ratio=1)
     )
     return SLAMConfig(
         detector=ORB(features_number=1000),
@@ -111,7 +111,7 @@ def create_sift_config(intrinsics):
     name = "sift"
     projector = PointProjector()
     point_filters = [PointClipFOVFilter(), PointNonpositiveDepthFilter()]
-    matcher = DefaultMatcher(partial(match_descriptors, max_ratio=0.8))
+    matcher = DefaultMatcher(partial(match_descriptors, max_ratio=1))
     return SLAMConfig(
         detector=SIFT(1000),
         descriptor=SIFTDescriptor(),
@@ -198,7 +198,8 @@ if __name__ == "__main__":
     keyframe_selector = StatisticalKeyframeSelector(
         min_step=10, tracked_points_ratio_threshold=0.85, min_tracked_points_number=3
     )
-    slam_configs = [super_point_config]
+    slam_config = super_point_config
+    slam_configs = [slam_config]
     slam = PrimeSLAM(
         backend=G2OPointSLAMBackend(dataset.intrinsics),
         frontend=TrackingFrontend(
@@ -240,5 +241,9 @@ if __name__ == "__main__":
     if args.save_cloud:
         o3d.io.write_point_cloud(args.cloud_save_path, resulting_cloud)
     o3d.visualization.draw_geometries(
-        [create_point_cloud(slam.frontend.map.get_positions("superpoint"))]
+        [
+            create_point_cloud(
+                slam.frontend.map.get_positions(slam_config.observation_name)
+            )
+        ]
     )

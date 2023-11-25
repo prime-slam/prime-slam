@@ -41,7 +41,7 @@ class StatisticalKeyframeSelector(KeyframeSelector):
             tracked_points_number = len(data.get_matched_target(name))
             untracked_points_number = len(data.get_unmatched_target(name))
             ratio = tracked_points_number / (
-                tracked_points_number + untracked_points_number
+                tracked_points_number + untracked_points_number + 1
             )
             selected &= (ratio < self.tracked_points_ratio_threshold) and (
                 tracked_points_number > self.min_tracked_points_number

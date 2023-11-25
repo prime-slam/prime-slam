@@ -44,7 +44,9 @@ class SuperPointDescriptor(Descriptor):
         observations: List[Keyobject],
         sensor_data: SensorData,
     ) -> ArrayNxM[float]:
-        gray = cv2.cvtColor(np.array(sensor_data.rgb.image), cv2.COLOR_RGB2GRAY)
-        scaled_gray = gray.astype(np.float32) / 255.0
-        _, desc, _ = self.model.run(scaled_gray)
-        return desc.T
+        descriptors = np.array([])
+        if len(observations) != 0:
+            gray = cv2.cvtColor(np.array(sensor_data.rgb.image), cv2.COLOR_RGB2GRAY)
+            scaled_gray = gray.astype(np.float32) / 255.0
+            _, descriptors, _ = self.model.run(scaled_gray)
+        return descriptors.T
