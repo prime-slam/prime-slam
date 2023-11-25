@@ -91,9 +91,7 @@ def create_orb_config(intrinsics):
     name = "orb"
     projector = PointProjector()
     point_filters = [PointClipFOVFilter(), PointNonpositiveDepthFilter()]
-    matcher = DefaultMatcher(
-        partial(match_descriptors, metric="hamming", max_ratio=1)
-    )
+    matcher = DefaultMatcher(partial(match_descriptors, metric="hamming", max_ratio=1))
     return SLAMConfig(
         detector=ORB(features_number=1000),
         descriptor=ORBDescriptor(),
