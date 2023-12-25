@@ -21,6 +21,11 @@ class DataAssociation:
         self._target_indices = {}
         self._unmatched_reference_indices = {}
         self._unmatched_target_indices = {}
+        self._names = []
+
+    @property
+    def names(self):
+        return self._names
 
     def set_associations(
         self,
@@ -30,6 +35,7 @@ class DataAssociation:
         unmatched_reference_indices,
         unmatched_target_indices,
     ):
+        self._names.append(observation_name)
         self._reference_indices[observation_name] = reference_indices
         self._target_indices[observation_name] = target_indices
         self._unmatched_reference_indices[

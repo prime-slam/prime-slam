@@ -85,11 +85,17 @@ class Mapping:
         frame: Frame,
     ):
         visible_multimap = MultiMap()
-        for observation_creator in self.mapping_configs:
-            observation_name = observation_creator.observation_name
+        for config in self.mapping_configs:
+            observation_name = config.observation_name
             visible_map = self.multi_map.get_map(observation_name).get_visible_map(
                 frame
             )
             visible_multimap.add_map(visible_map)
 
         return visible_multimap
+
+    def cull_landmarks(self):
+        for config in self.mapping_configs:
+            observation_name = config.observation_name
+            current_map = self.multi_map.get_map(observation_name)
+            current_map.cull()

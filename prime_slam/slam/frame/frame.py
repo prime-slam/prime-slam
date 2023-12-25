@@ -61,6 +61,10 @@ class Frame:
         return self._world_to_camera_transform.transformation
 
     @property
+    def camera_to_world_transform(self):
+        return self._camera_to_world_transform.transformation
+
+    @property
     def world_to_camera_rotation(self):
         return self._world_to_camera_transform.rotation
 

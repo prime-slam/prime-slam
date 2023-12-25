@@ -23,7 +23,7 @@ class EveryNthKeyframeSelector(KeyframeSelector):
         self.n = n
         self.counter = 0
 
-    def is_selected(self, keyframe: Frame) -> bool:
+    def is_selected(self, keyframe: Frame, data=None) -> bool:
         self.counter += 1
         selected = (self.counter // self.n) == 1
         if selected:

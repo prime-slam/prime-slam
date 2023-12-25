@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np
+
 from itertools import compress
 from typing import List
-
-import numpy as np
 
 from prime_slam.slam.frame.frame import Frame
 from prime_slam.slam.mapping.landmark.landmark import Landmark
@@ -65,7 +65,7 @@ class PointMap(Map):
             & (projected_map[:, 1] >= 0)
             & (projected_map[:, 1] < height)
             & depth_mask
-            # & viewing_direction_mask
+            # & viewing_direction_mask # TODO
         )
         visible_landmarks = list(compress(self._landmarks.values(), mask))
         visible_map.add_landmarks(visible_landmarks)
@@ -74,3 +74,12 @@ class PointMap(Map):
 
     def create_landmark(self, current_id, landmark_position, descriptor, frame):
         return PointLandmark(current_id, landmark_position, descriptor, frame)
+
+    def cull(self):
+        for landmark in self._landmarks.values():
+            landmark.update_state()
+        self._landmarks = {
+            landmark_id: landmark
+            for landmark_id, landmark in self._landmarks.items()
+            if not landmark.is_bad
+        }

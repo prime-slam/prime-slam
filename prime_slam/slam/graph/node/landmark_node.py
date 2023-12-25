@@ -12,20 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from prime_slam.slam.mapping.landmark.landmark import Landmark
 from prime_slam.slam.graph.node.node import Node
 
 __all__ = ["LandmarkNode"]
 
 
 class LandmarkNode(Node):
-    def __init__(self, identifier, position=None):
-        super().__init__(identifier)
-        self._position = position
+    def __init__(self, landmark: Landmark):
+        super().__init__(landmark.identifier)
+        self._landmark = landmark
 
     @property
     def position(self):
-        return self._position
+        return self._landmark.position
 
-    @position.setter
-    def position(self, new_position):
-        self._position = new_position
+    @property
+    def is_bad(self):
+        return self._landmark.is_bad

@@ -21,5 +21,5 @@ __all__ = ["KeyframeSelector"]
 
 class KeyframeSelector(ABC):
     @abstractmethod
-    def is_selected(self, frame: Frame) -> bool:
+    def is_selected(self, frame: Frame, data) -> bool:
         pass
