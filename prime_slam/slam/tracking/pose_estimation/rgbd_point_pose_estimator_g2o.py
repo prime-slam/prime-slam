@@ -21,10 +21,10 @@ from prime_slam.projection.point_projector import PointProjector
 from prime_slam.slam.tracking.pose_estimation.estimator import PoseEstimator
 from prime_slam.typing.hints import ArrayNx2, ArrayNx3
 
-__all__ = ["RGBDPointPoseEstimator"]
+__all__ = ["RGBDPointPoseEstimatorG2O"]
 
 
-class RGBDPointPoseEstimator(PoseEstimator):
+class RGBDPointPoseEstimatorG2O(PoseEstimator):
     def __init__(
         self,
         camera_intrinsics,

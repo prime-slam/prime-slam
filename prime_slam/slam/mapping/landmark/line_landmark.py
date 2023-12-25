@@ -25,4 +25,4 @@ class LineLandmark(Landmark):
         super().__init__(identifier, position, feature_descriptor, keyframe)
 
     def _calculate_viewing_directions(self, origins: np.ndarray):
-        raise NotImplementedError()
+        return origins

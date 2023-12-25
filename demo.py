@@ -24,6 +24,8 @@ from pathlib import Path
 from prime_slam.data import DataFormat, DatasetFactory
 from prime_slam.metrics.pose_error import pose_error
 from prime_slam.observation import (
+    LBD,
+    LSD,
     ORB,
     SIFT,
     FilterChain,
@@ -34,19 +36,19 @@ from prime_slam.observation import (
     SuperPoint,
     SuperPointDescriptor,
 )
-from prime_slam.projection import PointProjector
+from prime_slam.projection import LineProjector, PointProjector
 from prime_slam.slam import (
-    G2OPointSLAMBackend,
+    EveryNthKeyframeSelector,
+    LineMapCreator,
     PointMapCreator,
     PrimeSLAM,
-    RGBDPointPoseEstimator,
+    RGBDPointPoseEstimatorG2O,
     SLAMConfig,
     SLAMModuleFactory,
     TrackingFrontend,
+    MROBPointBackend, G2OPointBackend,
 )
-from prime_slam.slam.frame.keyframe_selection.statistical_keyframe_selector import (
-    StatisticalKeyframeSelector,
-)
+from prime_slam.slam.backend.line_backend_mrob import MROBLineBackend
 from prime_slam.slam.tracking.matching.default_observations_matcher import (
     DefaultMatcher,
 )
@@ -54,8 +56,11 @@ from prime_slam.slam.tracking.matching.points.superglue import SuperGlue
 from prime_slam.slam.tracking.matching.points.superpoint_matcher import (
     SuperPointMatcher,
 )
-from prime_slam.slam.frame.keyframe_selection.statistical_keyframe_selector import (
-    StatisticalKeyframeSelector,
+from prime_slam.slam.tracking.pose_estimation.rgbd_line_pose_estimator_mrob import (
+    RGBDLinePoseEstimatorMROB,
+)
+from prime_slam.slam.tracking.pose_estimation.rgbd_point_pose_estimator_mrob import (
+    RGBDPointPoseEstimatorMROB,
 )
 
 
@@ -63,6 +68,22 @@ def create_point_cloud(points_3d):
     point_cloud = o3d.geometry.PointCloud()
     point_cloud.points = o3d.utility.Vector3dVector(points_3d)
     return point_cloud
+
+
+def create_line_set(lines_3d):
+    line_set = o3d.geometry.LineSet()
+    points = []
+    lines = []
+    lines_3d = lines_3d.reshape(-1, 2, 3)
+    for i, edges in enumerate(lines_3d):
+        points.append(edges[0])
+        points.append(edges[1])
+        lines.append((2 * i, 2 * i + 1))
+
+    line_set.points = o3d.utility.Vector3dVector(points)
+    line_set.lines = o3d.utility.Vector2iVector(lines)
+
+    return line_set
 
 
 def create_point_map(keyframes, intrinsics, color=(1, 0, 0)):
@@ -101,7 +122,7 @@ def create_orb_config(intrinsics):
         frame_matcher=matcher,
         map_matcher=matcher,
         projector=projector,
-        pose_estimator=RGBDPointPoseEstimator(intrinsics, 30),
+        pose_estimator=RGBDPointPoseEstimatorMROB(intrinsics),
         observations_filter=FilterChain(point_filters),
         map_creator=PointMapCreator(projector, name),
         observation_name=name,
@@ -119,7 +140,7 @@ def create_sift_config(intrinsics):
         frame_matcher=matcher,
         map_matcher=matcher,
         projector=projector,
-        pose_estimator=RGBDPointPoseEstimator(intrinsics, 30),
+        pose_estimator=RGBDPointPoseEstimatorMROB(intrinsics),
         observations_filter=FilterChain(point_filters),
         map_creator=PointMapCreator(projector, name),
         observation_name=name,
@@ -137,9 +158,26 @@ def create_superpoint_config(intrinsics, use_super_glue=True):
         frame_matcher=SuperGlue() if use_super_glue else superpoint_matcher,
         map_matcher=superpoint_matcher,
         projector=projector,
-        pose_estimator=RGBDPointPoseEstimator(intrinsics, 30),
+        pose_estimator=RGBDPointPoseEstimatorG2O(intrinsics),
         observations_filter=FilterChain(point_filters),
         map_creator=PointMapCreator(projector, name),
+        observation_name=name,
+    )
+
+
+def create_lsd_config(intrinsics):
+    name = "lsd"
+    projector = LineProjector()
+    matcher = DefaultMatcher(partial(match_descriptors, max_ratio=1))
+    return SLAMConfig(
+        detector=LSD(),
+        descriptor=LBD(),
+        frame_matcher=matcher,
+        map_matcher=matcher,
+        projector=projector,
+        pose_estimator=RGBDLinePoseEstimatorMROB(intrinsics),
+        observations_filter=FilterChain([]),
+        map_creator=LineMapCreator(projector, name),
         observation_name=name,
     )
 
@@ -196,15 +234,13 @@ if __name__ == "__main__":
     orb_config = create_orb_config(dataset.intrinsics)
     sift_config = create_sift_config(dataset.intrinsics)
     super_point_config = create_superpoint_config(dataset.intrinsics)
-    keyframe_selector = StatisticalKeyframeSelector(
-        min_step=10, tracked_points_ratio_threshold=0.85, min_tracked_points_number=3
-    )
+    lsd_config = create_lsd_config(dataset.intrinsics)
+    keyframe_selector = EveryNthKeyframeSelector(10)
     slam_config = super_point_config
-    slam_configs = [slam_config]
     slam = PrimeSLAM(
-        backend=G2OPointSLAMBackend(dataset.intrinsics),
+        backend=G2OPointBackend(dataset.intrinsics),
         frontend=TrackingFrontend(
-            SLAMModuleFactory(slam_configs), keyframe_selector, init_pose
+            SLAMModuleFactory([slam_config]), keyframe_selector, init_pose
         ),
     )
     for data in tqdm(dataset):
@@ -214,9 +250,8 @@ if __name__ == "__main__":
     angular_translation_errors = []
     angular_rotation_errors = []
     absolute_translation_errors = []
-    keyframe_identifiers = [kf.identifier for kf in slam.frontend.keyframes]
+    keyframe_identifiers = [kf.identifier for kf in slam.frontend.keyframes][:-1]
     gt_frames_poses = [gt_poses[i] for i in keyframe_identifiers]
-
     for est_pose, gt_pose in zip(poses, gt_frames_poses):
         (
             angular_translation_error_,
