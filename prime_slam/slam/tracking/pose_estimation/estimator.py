@@ -15,17 +15,27 @@
 from abc import ABC, abstractmethod
 
 from prime_slam.geometry.pose import Pose
+from prime_slam.observation.observations_batch import ObservationData
+from prime_slam.typing.hints import ArrayNx2, ArrayNxM
 
 __all__ = ["PoseEstimator"]
 
 
 class PoseEstimator(ABC):
     @abstractmethod
-    def estimate_relative_pose(self, new_keyframe, prev_keyframe, matches, idx) -> Pose:
+    def estimate_relative_pose(
+        self,
+        new_observation_data: ObservationData,
+        prev_observation_data: ObservationData,
+        matches: ArrayNx2[float],
+    ) -> Pose:
         pass
 
     @abstractmethod
     def estimate_absolute_pose(
-        self, new_keyframe, map_3d_objects, matches, idx
+        self,
+        new_observation_data: ObservationData,
+        map_3d_objects: ArrayNxM[float],
+        matches: ArrayNx2[float],
     ) -> Pose:
         pass

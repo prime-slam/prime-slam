@@ -17,9 +17,9 @@ import numpy as np
 from abc import ABC, abstractmethod
 from typing import List
 
+from prime_slam.projection.projector import Projector
 from prime_slam.slam.frame.frame import Frame
 from prime_slam.slam.mapping.landmark.landmark import Landmark
-from prime_slam.projection.projector import Projector
 
 __all__ = ["Map"]
 
@@ -41,26 +41,31 @@ class Map(ABC):
     def name(self):
         return self._landmark_name
 
-    def get_descriptors(self):
+    @property
+    def descriptors(self):
         return np.array(
             [landmark.feature_descriptor for landmark in self._landmarks.values()]
         )
 
-    def get_positions(self):
+    @property
+    def positions(self):
         return np.array([landmark.position for landmark in self._landmarks.values()])
 
-    def get_landmark_identifiers(self):
+    @property
+    def landmark_identifiers(self):
         return self._landmarks.keys()
 
-    def get_mean_viewing_directions(self):
+    @property
+    def mean_viewing_directions(self):
         return np.array(
             [landmark.mean_viewing_direction for landmark in self._landmarks.values()]
         )
 
-    def get_size(self):
+    def __len__(self):
         return len(self._landmarks)
 
-    def get_landmarks(self):
+    @property
+    def landmarks(self):
         return list(self._landmarks.values())
 
     def add_landmark(self, landmark: Landmark):

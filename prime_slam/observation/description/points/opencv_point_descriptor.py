@@ -33,7 +33,9 @@ class OpenCVPointDescriptor(Descriptor):
         self, keypoints: List[Keyobject], sensor_data: SensorData
     ) -> ArrayNxM[float]:
         gray = cv2.cvtColor(np.array(sensor_data.rgb.image), cv2.COLOR_RGB2GRAY)
-        keypoints = [keypoint.data for keypoint in keypoints]
-        _, descriptors = self.descriptor.compute(gray, keypoints)
+        descriptors = np.array([])
+        if len(keypoints) != 0:
+            keypoints = [keypoint.data for keypoint in keypoints]
+            _, descriptors = self.descriptor.compute(gray, keypoints)
 
         return descriptors

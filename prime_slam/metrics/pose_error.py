@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import numpy as np
+
 from typing import Tuple
 
 __all__ = [
@@ -22,7 +23,7 @@ __all__ = [
     "pose_error",
 ]
 
-from prime_slam.typing.hints import Rotation, Translation, Transformation
+from prime_slam.typing.hints import Rotation, Transformation, Translation
 
 
 def angular_rotation_error(

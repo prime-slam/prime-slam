@@ -12,33 +12,47 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import argparse
 import numpy as np
 import open3d as o3d
-
-from functools import partial
-from pathlib import Path
 from skimage.feature import match_descriptors
 from tqdm import tqdm
 
-from prime_slam.data import DatasetFactory, DataFormat
+import argparse
+from functools import partial
+from pathlib import Path
+
+from prime_slam.data import DataFormat, DatasetFactory
 from prime_slam.metrics.pose_error import pose_error
 from prime_slam.observation import (
     ORB,
-    ORBDescriptor,
+    SIFT,
     FilterChain,
+    ORBDescriptor,
     PointClipFOVFilter,
     PointNonpositiveDepthFilter,
+    SIFTDescriptor,
+    SuperPoint,
+    SuperPointDescriptor,
 )
 from prime_slam.projection import PointProjector
 from prime_slam.slam import (
-    SLAMConfig,
-    RGBDPointPoseEstimator,
+    G2OPointSLAMBackend,
     PointMapCreator,
     PrimeSLAM,
-    G2OPointSLAMBackend,
-    TrackingFrontend,
+    RGBDPointPoseEstimator,
+    SLAMConfig,
     SLAMModuleFactory,
+    TrackingFrontend,
+)
+from prime_slam.slam.frame.keyframe_selection.statistical_keyframe_selector import (
+    StatisticalKeyframeSelector,
+)
+from prime_slam.slam.tracking.matching.default_observations_matcher import (
+    DefaultMatcher,
+)
+from prime_slam.slam.tracking.matching.points.superglue import SuperGlue
+from prime_slam.slam.tracking.matching.points.superpoint_matcher import (
+    SuperPointMatcher,
 )
 from prime_slam.slam.frame.keyframe_selection.statistical_keyframe_selector import (
     StatisticalKeyframeSelector,
@@ -79,10 +93,49 @@ def create_point_map(keyframes, intrinsics, color=(1, 0, 0)):
 def create_orb_config(intrinsics):
     name = "orb"
     projector = PointProjector()
+    point_filters = [PointClipFOVFilter(), PointNonpositiveDepthFilter()]
+    matcher = DefaultMatcher(partial(match_descriptors, metric="hamming", max_ratio=1))
     return SLAMConfig(
         detector=ORB(features_number=1000),
         descriptor=ORBDescriptor(),
-        matcher=partial(match_descriptors, metric="hamming", max_ratio=0.8),
+        frame_matcher=matcher,
+        map_matcher=matcher,
+        projector=projector,
+        pose_estimator=RGBDPointPoseEstimator(intrinsics, 30),
+        observations_filter=FilterChain(point_filters),
+        map_creator=PointMapCreator(projector, name),
+        observation_name=name,
+    )
+
+
+def create_sift_config(intrinsics):
+    name = "sift"
+    projector = PointProjector()
+    point_filters = [PointClipFOVFilter(), PointNonpositiveDepthFilter()]
+    matcher = DefaultMatcher(partial(match_descriptors, max_ratio=1))
+    return SLAMConfig(
+        detector=SIFT(1000),
+        descriptor=SIFTDescriptor(),
+        frame_matcher=matcher,
+        map_matcher=matcher,
+        projector=projector,
+        pose_estimator=RGBDPointPoseEstimator(intrinsics, 30),
+        observations_filter=FilterChain(point_filters),
+        map_creator=PointMapCreator(projector, name),
+        observation_name=name,
+    )
+
+
+def create_superpoint_config(intrinsics, use_super_glue=True):
+    name = "superpoint"
+    projector = PointProjector()
+    point_filters = [PointClipFOVFilter(), PointNonpositiveDepthFilter()]
+    superpoint_matcher = SuperPointMatcher()
+    return SLAMConfig(
+        detector=SuperPoint(),
+        descriptor=SuperPointDescriptor(),
+        frame_matcher=SuperGlue() if use_super_glue else superpoint_matcher,
+        map_matcher=superpoint_matcher,
         projector=projector,
         pose_estimator=RGBDPointPoseEstimator(intrinsics, 30),
         observations_filter=FilterChain(point_filters),
@@ -140,17 +193,20 @@ if __name__ == "__main__":
     init_pose = gt_poses[0]
     images_number = len(dataset)
 
-    point_filters = [PointClipFOVFilter(), PointNonpositiveDepthFilter()]
     orb_config = create_orb_config(dataset.intrinsics)
-    keyframe_selector = StatisticalKeyframeSelector()
-    slam_configs = [orb_config]
+    sift_config = create_sift_config(dataset.intrinsics)
+    super_point_config = create_superpoint_config(dataset.intrinsics)
+    keyframe_selector = StatisticalKeyframeSelector(
+        min_step=10, tracked_points_ratio_threshold=0.85, min_tracked_points_number=3
+    )
+    slam_config = super_point_config
+    slam_configs = [slam_config]
     slam = PrimeSLAM(
         backend=G2OPointSLAMBackend(dataset.intrinsics),
         frontend=TrackingFrontend(
             SLAMModuleFactory(slam_configs), keyframe_selector, init_pose
         ),
     )
-
     for data in tqdm(dataset):
         slam.process_sensor_data(data)
 
@@ -186,5 +242,9 @@ if __name__ == "__main__":
     if args.save_cloud:
         o3d.io.write_point_cloud(args.cloud_save_path, resulting_cloud)
     o3d.visualization.draw_geometries(
-        [create_point_cloud(slam.frontend.map.get_positions("orb"))]
+        [
+            create_point_cloud(
+                slam.frontend.map.get_positions(slam_config.observation_name)
+            )
+        ]
     )

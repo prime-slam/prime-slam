@@ -14,8 +14,8 @@
 
 from dataclasses import dataclass
 
-from prime_slam.observation.detection.detector import Detector
 from prime_slam.observation.description.descriptor import Descriptor
+from prime_slam.observation.detection.detector import Detector
 from prime_slam.observation.filter.observation_filter import ObservationsFilter
 
 __all__ = ["ObservationConfig"]

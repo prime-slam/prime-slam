@@ -14,9 +14,9 @@
 
 from typing import List
 
-from prime_slam.slam.slam_config import SLAMConfig
-from prime_slam.slam.mapping.mapping import Mapping
 from prime_slam.observation.observation_creator import ObservationCreator
+from prime_slam.slam.mapping.mapping import Mapping
+from prime_slam.slam.slam_config import SLAMConfig
 from prime_slam.slam.tracking.tracker import Tracker
 
 __all__ = ["SLAMModuleFactory"]

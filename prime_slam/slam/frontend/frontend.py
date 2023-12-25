@@ -13,10 +13,13 @@
 # limitations under the License.
 
 from abc import ABC, abstractmethod
+from typing import List
 
+from prime_slam.geometry.pose import Pose
+from prime_slam.sensor.sensor_data import SensorData
 from prime_slam.slam.frame.frame import Frame
 from prime_slam.slam.graph.factor_graph import FactorGraph
-from prime_slam.sensor.sensor_data import SensorData
+from prime_slam.slam.mapping.multi_map import MultiMap
 
 __all__ = ["Frontend"]
 
@@ -45,10 +48,10 @@ class Frontend(ABC):
 
     @property
     @abstractmethod
-    def map(self) -> FactorGraph:
+    def map(self) -> MultiMap:
         pass
 
     @property
     @abstractmethod
-    def trajectory(self) -> FactorGraph:
+    def trajectory(self) -> List[Pose]:
         pass

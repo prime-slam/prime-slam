@@ -12,11 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Dict
+from typing import Dict, List
 
-from prime_slam.slam.mapping.map import Map
 from prime_slam.slam.mapping.landmark.landmark import Landmark
-
+from prime_slam.slam.mapping.map import Map
 
 __all__ = ["MultiMap"]
 
@@ -42,22 +41,22 @@ class MultiMap:
             self.add_map(new_map)
 
     def get_descriptors(self, landmark_name):
-        return self._maps[landmark_name].get_descriptors()
+        return self._maps[landmark_name].descriptors
 
     def get_positions(self, landmark_name):
-        return self._maps[landmark_name].get_positions()
+        return self._maps[landmark_name].positions
 
     def get_landmark_identifiers(self, landmark_name):
-        return self._maps[landmark_name].get_landmark_identifiers()
+        return self._maps[landmark_name].landmark_identifiers
 
     def get_mean_viewing_directions(self, landmark_name):
-        return self._maps[landmark_name].get_mean_viewing_directions()
+        return self._maps[landmark_name].mean_viewing_directions
 
     def get_size(self, landmark_name):
-        return self._maps[landmark_name].get_size()
+        return len(self._maps[landmark_name])
 
     def get_landmarks(self, landmark_name):
-        return self._maps[landmark_name].get_landmarks()
+        return self._maps[landmark_name].landmarks
 
     def add_landmark(self, landmark: Landmark, landmark_name):
         self._maps[landmark_name].add_landmark(landmark)

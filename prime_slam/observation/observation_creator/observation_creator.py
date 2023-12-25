@@ -15,12 +15,11 @@
 from typing import List
 
 from prime_slam.observation.observation import Observation
-from prime_slam.observation.observations_batch import ObservationsBatch
-from prime_slam.sensor.sensor_data import SensorData
 from prime_slam.observation.observation_creator.observation_config import (
     ObservationConfig,
 )
-
+from prime_slam.observation.observations_batch import ObservationData, ObservationsBatch
+from prime_slam.sensor.sensor_data import SensorData
 
 __all__ = ["ObservationCreator"]
 
@@ -30,9 +29,10 @@ class ObservationCreator:
         self.observation_configs = observation_configs
 
     def create_observations(self, sensor_data: SensorData) -> ObservationsBatch:
-        observation_batch = []
-        names = []
+        observations_batch = ObservationsBatch()
+
         for config in self.observation_configs:
+            observation_name = config.observation_name
             keyobjects = config.detector.detect(sensor_data)
             descriptors = config.descriptor.descript(keyobjects, sensor_data)
             observations = [
@@ -41,9 +41,9 @@ class ObservationCreator:
             ]
 
             observations = config.observations_filter.apply(observations, sensor_data)
-            observation_batch.append(observations)
-            names.append(config.observation_name)
-
-        observations_batch = ObservationsBatch(observation_batch, names)
+            observation_data = ObservationData(
+                observations, observation_name, sensor_data
+            )
+            observations_batch[observation_name] = observation_data
 
         return observations_batch

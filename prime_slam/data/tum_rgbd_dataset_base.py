@@ -13,18 +13,18 @@
 # limitations under the License.
 
 import numpy as np
+from scipy.spatial.transform import Rotation as R
 
 from abc import ABC
 from pathlib import Path
-from scipy.spatial.transform import Rotation as R
 from typing import List
 
 from prime_slam.data.rgbd_dataset import RGBDDataset
-from prime_slam.geometry import make_euclidean_transform, Pose
+from prime_slam.geometry import Pose, make_euclidean_transform
 from prime_slam.typing.hints import Transformation
 
 
-class TUMRGBDRGBDDatasetBase(RGBDDataset, ABC):
+class TUMRGBDDatasetBase(RGBDDataset, ABC):
     def __init__(
         self,
         data_path: Path,
@@ -42,9 +42,13 @@ class TUMRGBDRGBDDatasetBase(RGBDDataset, ABC):
         depth_factor: float = 5000,
     ):
         self.rgb_base_path = data_path / rgb_directory
-        self.rgb_paths = sorted(self.rgb_base_path.iterdir())
+        self.rgb_paths = sorted(
+            self.rgb_base_path.iterdir(), key=lambda path: float(path.stem)
+        )
         self.depth_base_path = data_path / depth_directory
-        self.depth_paths = sorted(self.depth_base_path.iterdir())
+        self.depth_paths = sorted(
+            self.depth_base_path.iterdir(), key=lambda path: float(path.stem)
+        )
         self.gt_poses_path = data_path / gt_poses_file
         self._gt_poses = self.read_gt_poses(self.gt_poses_path)
         self._intrinsics = intrinsics

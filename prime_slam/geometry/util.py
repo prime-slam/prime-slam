@@ -14,8 +14,7 @@
 
 import numpy as np
 
-from prime_slam.typing.hints import ArrayNx4, ArrayN
-
+from prime_slam.typing.hints import ArrayN, ArrayNx4
 
 __all__ = ["clip_lines", "normalize"]
 

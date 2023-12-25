@@ -36,6 +36,8 @@ class PointProjector(Projector):
         intrinsics: np.ndarray,
         extrinsics: np.ndarray,
     ):
+        if len(points_2d) == 0:
+            return np.array([])
         fx = intrinsics[0, 0]
         fy = intrinsics[1, 1]
         cx = intrinsics[0, 2]

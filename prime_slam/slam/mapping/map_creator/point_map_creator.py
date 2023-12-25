@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from prime_slam.slam.mapping.point_map import PointMap
 from prime_slam.slam.mapping.map_creator.map_creator import MapCreator
+from prime_slam.slam.mapping.point_map import PointMap
 
 __all__ = ["PointMapCreator"]
 

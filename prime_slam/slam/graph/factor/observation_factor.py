@@ -14,8 +14,8 @@
 
 import numpy as np
 
-from prime_slam.slam.graph.factor.factor import Factor
 from prime_slam.sensor.rgbd import RGBDImage
+from prime_slam.slam.graph.factor.factor import Factor
 
 __all__ = ["ObservationFactor"]
 

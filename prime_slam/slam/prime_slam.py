@@ -16,7 +16,6 @@ from prime_slam.slam.backend.backend import Backend
 from prime_slam.slam.frontend.frontend import Frontend
 from prime_slam.slam.slam import SLAM
 
-
 __all__ = ["PrimeSLAM"]
 
 
@@ -39,7 +38,7 @@ class PrimeSLAM(SLAM):
 
     def process_sensor_data(self, sensor_data):
         new_frame = self.frontend.process_sensor_data(sensor_data)
-        if new_frame.is_keyframe:
+        if new_frame.is_keyframe and len(self.trajectory) > 1:
             for observation_name in new_frame.observations.observation_names:
                 self.__optimize_graph(observation_name)
 

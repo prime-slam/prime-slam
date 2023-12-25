@@ -17,8 +17,8 @@ import numpy as np
 from abc import ABC, abstractmethod
 from typing import List
 
-from prime_slam.slam.frame.frame import Frame
 from prime_slam.geometry.util import normalize
+from prime_slam.slam.frame.frame import Frame
 
 __all__ = ["Landmark"]
 
@@ -31,7 +31,7 @@ class Landmark(ABC):
         self._mean_viewing_direction = np.array([0, 0, 0], dtype=float)
         self._associated_keyframes: List[Frame] = []
         self.add_associated_keyframe(keyframe)
-        self.frames_from_last_insert = 0
+        self.keyframes_from_last_insert = 0
         self._is_bad = False
 
     def add_associated_keyframe(self, keyframe: Frame):
@@ -40,11 +40,22 @@ class Landmark(ABC):
 
     def recalculate_mean_viewing_direction(self):
         origins = np.array([kf.origin for kf in self._associated_keyframes])
-        self._mean_viewing_direction = np.sum(
-            normalize(self._calculate_viewing_directions(origins)),
-            axis=0,
+        viewing_directions = np.array(
+            [
+                normalize(viewing_direction)
+                for viewing_direction in self._calculate_viewing_directions(origins)
+            ]
         )
-        self._mean_viewing_direction = normalize(self._mean_viewing_direction)
+        self._mean_viewing_direction = normalize(
+            np.sum(
+                viewing_directions,
+                axis=0,
+            )
+        )
+
+    @property
+    def is_bad(self):
+        return self._is_bad
 
     @property
     def is_bad(self):
@@ -75,16 +86,15 @@ class Landmark(ABC):
         return self._mean_viewing_direction
 
     def update_state(self):
-        self.frames_from_last_insert += 1
-        if self.frames_from_last_insert >= 2:
+        self.keyframes_from_last_insert += 1
+        if self.keyframes_from_last_insert >= 2:
             self._is_bad = len(self._associated_keyframes) < 2
 
     def __add_viewing_direction(self, associated_keyframe):
         viewing_direction = self._calculate_viewing_directions(
             associated_keyframe.origin
         )
-        viewing_direction = viewing_direction / np.linalg.norm(viewing_direction)
-        self._mean_viewing_direction += viewing_direction
+        self._mean_viewing_direction += normalize(viewing_direction)
         self._mean_viewing_direction = normalize(self._mean_viewing_direction)
 
     @abstractmethod

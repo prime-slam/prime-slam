@@ -14,12 +14,12 @@
 
 from typing import Dict
 
-from prime_slam.slam.graph.node.node import Node
-from prime_slam.slam.graph.factor.observation_factor import ObservationFactor
-from prime_slam.slam.mapping.landmark.landmark import Landmark
-from prime_slam.slam.graph.node.landmark_node import LandmarkNode
-from prime_slam.slam.graph.node.pose_node import PoseNode
 from prime_slam.slam.frame.frame import Frame
+from prime_slam.slam.graph.factor.observation_factor import ObservationFactor
+from prime_slam.slam.graph.node.landmark_node import LandmarkNode
+from prime_slam.slam.graph.node.node import Node
+from prime_slam.slam.graph.node.pose_node import PoseNode
+from prime_slam.slam.mapping.landmark.landmark import Landmark
 
 __all__ = ["FactorGraph"]
 

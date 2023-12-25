@@ -12,21 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np
-
-from collections.abc import Callable
 from dataclasses import dataclass
 
 from prime_slam.projection.projector import Projector
+from prime_slam.slam.tracking.matching.frame_matcher import ObservationsMatcher
+from prime_slam.slam.tracking.matching.map_matcher import MapMatcher
 from prime_slam.slam.tracking.pose_estimation.estimator import PoseEstimator
-
 
 __all__ = ["TrackingConfig"]
 
 
 @dataclass
 class TrackingConfig:
-    matcher: Callable[[np.ndarray, np.ndarray], np.ndarray]
+    frame_matcher: ObservationsMatcher
+    map_matcher: MapMatcher
     projector: Projector
     pose_estimator: PoseEstimator
     observation_name: str

@@ -13,17 +13,17 @@
 # limitations under the License.
 
 import numpy as np
+from skimage import io
 
 from pathlib import Path
-from skimage import io
-from typing import List, Dict
+from typing import Dict, List
 
 from prime_slam.data.constants import ICL_NUIM_DEFAULT_INTRINSICS, TUM_DEPTH_FACTOR
 from prime_slam.data.rgbd_dataset import RGBDDataset
-from prime_slam.data.tum_rgbd_dataset_base import TUMRGBDRGBDDatasetBase
+from prime_slam.data.tum_rgbd_dataset_base import TUMRGBDDatasetBase
 from prime_slam.geometry import Pose, normalize
-from prime_slam.sensor import RGBDImage, RGBImage, DepthImage
-from prime_slam.typing.hints import Transformation, ArrayN
+from prime_slam.sensor import DepthImage, RGBDImage, RGBImage
+from prime_slam.typing.hints import ArrayN, Transformation
 
 __all__ = ["ICLNUIMRGBDDataset"]
 
@@ -37,10 +37,15 @@ class ICLNUIMRGBDDataset(RGBDDataset):
         camera_parameters_extension: str = ".txt",
         intrinsics: Transformation = ICL_NUIM_DEFAULT_INTRINSICS,
     ):
-        self.rgb_paths = sorted(data_path.rglob(f"*{rgb_extension}"))
-        self.depth_paths = sorted(data_path.rglob(f"*{depth_extension}"))
+        self.rgb_paths = sorted(
+            data_path.rglob(f"*{rgb_extension}"), key=lambda path: float(path.stem)
+        )
+        self.depth_paths = sorted(
+            data_path.rglob(f"*{depth_extension}"), key=lambda path: float(path.stem)
+        )
         self.camera_param_paths = sorted(
-            data_path.rglob(f"*{camera_parameters_extension}")
+            data_path.rglob(f"*{camera_parameters_extension}"),
+            key=lambda path: float(path.stem),
         )
         self._gt_poses = self.__create_gt_poses()
         self._intrinsics = intrinsics
@@ -141,7 +146,7 @@ class ICLNUIMRGBDDataset(RGBDDataset):
         return params
 
 
-class ICLNUIMTUMFormatDataset(TUMRGBDRGBDDatasetBase):
+class ICLNUIMTUMFormatDataset(TUMRGBDDatasetBase):
     def __init__(
         self,
         data_path: Path,

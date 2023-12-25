@@ -17,9 +17,10 @@ import numpy as np
 
 from prime_slam.geometry.pose import Pose
 from prime_slam.geometry.util import clip_lines
-from prime_slam.slam.frame import Frame
-from prime_slam.slam.tracking.pose_estimation.estimator import PoseEstimator
+from prime_slam.observation.observations_batch import ObservationData
 from prime_slam.projection.line_projector import LineProjector
+from prime_slam.slam.tracking.pose_estimation.estimator import PoseEstimator
+from prime_slam.typing.hints import ArrayNx2, ArrayNx6
 
 __all__ = ["RGBDLinePoseEstimator"]
 
@@ -47,18 +48,18 @@ class RGBDLinePoseEstimator(PoseEstimator):
         self.projector = LineProjector()
 
     def estimate_absolute_pose(
-        self, new_keyframe: Frame, map_lines_3d, matches, name
+        self,
+        new_observation_data: ObservationData,
+        map_lines_3d: ArrayNx6[float],
+        matches: ArrayNx2[float],
     ) -> Pose:
         new_lines_index = matches[:, 0]
         prev_lines_index = matches[:, 1]
-        height, width = new_keyframe.sensor_measurement.depth.depth_map.shape[:2]
+        height, width = new_observation_data.sensor_measurement.depth.depth_map.shape[
+            :2
+        ]
 
-        new_lines = np.array(
-            [
-                keyline.coordinates
-                for keyline in new_keyframe.observations.get_keyobjects(name)
-            ]
-        )
+        new_lines = new_observation_data.coordinates
         new_lines = (
             clip_lines(new_lines, width=width, height=height)
             .astype(int)
@@ -128,17 +129,15 @@ class RGBDLinePoseEstimator(PoseEstimator):
         return Pose(v1.estimate().matrix())
 
     def estimate_relative_pose(
-        self, new_keyframe: Frame, prev_keyframe: Frame, matches, name
+        self,
+        new_observation_data: ObservationData,
+        prev_observation_data: ObservationData,
+        matches: ArrayNx2[float],
     ) -> Pose:
-        prev_lines = np.array(
-            [
-                keyline.coordinates
-                for keyline in prev_keyframe.observations.get_keyobjects(name)
-            ]
-        )
+        prev_lines = prev_observation_data.coordinates
 
-        prev_depth_map = prev_keyframe.sensor_measurement.depth.depth_map
-        prev_intrinsics = prev_keyframe.sensor_measurement.depth.intrinsics
+        prev_depth_map = prev_observation_data.sensor_measurement.depth.depth_map
+        prev_intrinsics = prev_observation_data.sensor_measurement.depth.intrinsics
         height, width = prev_depth_map.shape[:2]
 
         prev_lines = clip_lines(prev_lines, width=width, height=height).astype(int)
@@ -146,7 +145,7 @@ class RGBDLinePoseEstimator(PoseEstimator):
             prev_lines, prev_depth_map, prev_intrinsics, np.eye(4)
         )
 
-        return self.estimate_absolute_pose(new_keyframe, prev_lines_3d, matches, name)
+        return self.estimate_absolute_pose(new_observation_data, prev_lines_3d, matches)
 
     @staticmethod
     def __create_optimizer() -> g2o.SparseOptimizer:

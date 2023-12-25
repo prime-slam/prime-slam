@@ -13,19 +13,19 @@
 # limitations under the License.
 
 import numpy as np
-
-from pathlib import Path
 from skimage import io
 
+from pathlib import Path
+
 from prime_slam.data.constants import TUM_DEFAULT_INTRINSICS, TUM_DEPTH_FACTOR
-from prime_slam.data.tum_rgbd_dataset_base import TUMRGBDRGBDDatasetBase
-from prime_slam.sensor import RGBDImage, RGBImage, DepthImage
-from prime_slam.typing.hints import Transformation, ArrayNx2
+from prime_slam.data.tum_rgbd_dataset_base import TUMRGBDDatasetBase
+from prime_slam.sensor import DepthImage, RGBDImage, RGBImage
+from prime_slam.typing.hints import ArrayNx2, Transformation
 
 __all__ = ["TUMRGBDDataset"]
 
 
-class TUMRGBDDataset(TUMRGBDRGBDDatasetBase):
+class TUMRGBDDataset(TUMRGBDDatasetBase):
     def __init__(
         self,
         data_path: Path,
