@@ -39,14 +39,15 @@ from prime_slam.observation import (
 from prime_slam.projection import LineProjector, PointProjector
 from prime_slam.slam import (
     EveryNthKeyframeSelector,
+    G2OPointBackend,
     LineMapCreator,
+    MROBPointBackend,
     PointMapCreator,
     PrimeSLAM,
     RGBDPointPoseEstimatorG2O,
     SLAMConfig,
     SLAMModuleFactory,
     TrackingFrontend,
-    MROBPointBackend, G2OPointBackend,
 )
 from prime_slam.slam.backend.line_backend_mrob import MROBLineBackend
 from prime_slam.slam.tracking.matching.default_observations_matcher import (
