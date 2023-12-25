@@ -54,6 +54,9 @@ from prime_slam.slam.tracking.matching.points.superglue import SuperGlue
 from prime_slam.slam.tracking.matching.points.superpoint_matcher import (
     SuperPointMatcher,
 )
+from prime_slam.slam.frame.keyframe_selection.statistical_keyframe_selector import (
+    StatisticalKeyframeSelector,
+)
 
 
 def create_point_cloud(points_3d):

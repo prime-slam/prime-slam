@@ -58,6 +58,10 @@ class Landmark(ABC):
         return self._is_bad
 
     @property
+    def is_bad(self):
+        return self._is_bad
+
+    @property
     def identifier(self):
         return self._identifier
 
