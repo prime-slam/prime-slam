@@ -70,6 +70,7 @@ class LineProjector(Projector):
         intrinsics: np.ndarray,
         extrinsics: np.ndarray,
     ):
+        lines_3d = lines_3d.reshape(-1, 2, 3)
         start_points_3d = lines_3d[:, 0]
         end_points_3d = lines_3d[:, 1]
 

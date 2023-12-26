@@ -23,10 +23,10 @@ from prime_slam.slam.graph.factor_graph import FactorGraph
 from prime_slam.slam.graph.node.landmark_node import LandmarkNode
 from prime_slam.slam.graph.node.pose_node import PoseNode
 
-__all__ = ["G2OPointSLAMBackend"]
+__all__ = ["G2OPointBackend"]
 
 
-class G2OPointSLAMBackend(Backend):
+class G2OPointBackend(Backend):
     def __init__(self, intrinsics, optimizer_iterations_number=25):
         self.fx = intrinsics[0, 0]
         self.fy = intrinsics[1, 1]

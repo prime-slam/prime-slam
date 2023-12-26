@@ -22,10 +22,10 @@ from prime_slam.projection.line_projector import LineProjector
 from prime_slam.slam.tracking.pose_estimation.estimator import PoseEstimator
 from prime_slam.typing.hints import ArrayNx2, ArrayNx6
 
-__all__ = ["RGBDLinePoseEstimator"]
+__all__ = ["RGBDLinePoseEstimatorG2O"]
 
 
-class RGBDLinePoseEstimator(PoseEstimator):
+class RGBDLinePoseEstimatorG2O(PoseEstimator):
     def __init__(
         self,
         camera_intrinsics,

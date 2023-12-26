@@ -28,6 +28,8 @@ class FilterChain(ObservationsFilter):
     def apply(
         self, observations: List[Observation], sensor_data: SensorData
     ) -> List[Observation]:
+        if len(self.observation_filters) == 0:
+            return observations
         result = self.observation_filters[0].apply(observations, sensor_data)
         for i in range(1, len(self.observation_filters)):
             result = self.observation_filters[i].apply(result, sensor_data)
