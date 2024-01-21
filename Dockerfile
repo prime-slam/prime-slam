@@ -38,7 +38,7 @@ COPY requirements.txt requirements.txt
 RUN python3 -m pip install --no-cache-dir -r requirements.txt \
     && git clone --recursive https://github.com/iago-suarez/pytlbd.git \
     && cd pytlbd \
-    && pip install . 
+    && pip install .
 
 COPY . .
 
