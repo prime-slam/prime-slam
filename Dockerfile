@@ -9,10 +9,15 @@ RUN apt-get update  \
     build-essential \
     cmake \
     git \
-    libglib2.0-0 \
-    libgl1 \
+    libarpack++2-dev \
+    libarpack2-dev \
     libeigen3-dev \
+    libgl1 \
+    libglib2.0-0 \
+    libopencv-contrib-dev \
+    libopencv-dev \
     libsuitesparse-dev \
+    libsuperlu-dev \
     libx11-dev \
     wget \
     && rm -rf /var/lib/apt/lists/*
@@ -30,7 +35,10 @@ RUN git clone $CUSTOM_G2O_PATH \
 # install python requirements
 COPY requirements.txt requirements.txt
 
-RUN python3 -m pip install --no-cache-dir -r requirements.txt
+RUN python3 -m pip install --no-cache-dir -r requirements.txt \
+    && git clone --recursive https://github.com/iago-suarez/pytlbd.git \
+    && cd pytlbd \
+    && pip install . 
 
 COPY . .
 
