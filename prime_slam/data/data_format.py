@@ -14,15 +14,22 @@
 
 from enum import Enum
 
-__all__ = ["DataFormat"]
+__all__ = ["DataFormatRGBD, DataFormatStereo"]
 
 
-class DataFormat(Enum):
+class DataFormatRGBD(Enum):
     tum = 0
     icl = 1
     icl_tum = 2
-    hilti = 3
 
     @staticmethod
     def to_string(delimiter: str = ", "):
-        return delimiter.join(dist.name for dist in DataFormat)
+        return delimiter.join(dist.name for dist in DataFormatRGBD)
+
+
+class DataFormatStereo(Enum):
+    hilti = 0
+
+    @staticmethod
+    def to_string(delimiter: str = ", "):
+        return delimiter.join(dist.name for dist in DataFormatStereo)

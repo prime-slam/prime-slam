@@ -14,7 +14,7 @@
 
 from pathlib import Path
 
-from prime_slam.data.data_format import DataFormat
+from prime_slam.data.data_format import DataFormatRGBD, DataFormatStereo
 from prime_slam.data.hilti_stereo_dataset import HiltiStereoDataset
 from prime_slam.data.icl_nuim_dataset import ICLNUIMRGBDDataset
 from prime_slam.data.rgbd_dataset import RGBDDataset
@@ -28,18 +28,17 @@ class DatasetFactory:
     @staticmethod
     def create_from_rgbd(data_format: str, data_path: Path) -> RGBDDataset:
         formats = {
-            DataFormat.tum: TUMRGBDDataset,
-            DataFormat.icl: ICLNUIMRGBDDataset,
-            DataFormat.icl_tum: ICLNUIMRGBDDataset.create_tum_format,
-            DataFormat.hilti: HiltiStereoDataset,
+            DataFormatRGBD.tum: TUMRGBDDataset,
+            DataFormatRGBD.icl: ICLNUIMRGBDDataset,
+            DataFormatRGBD.icl_tum: ICLNUIMRGBDDataset.create_tum_format,
         }
 
         try:
-            return formats[DataFormat[data_format]](data_path)
+            return formats[DataFormatRGBD[data_format]](data_path)
         except KeyError:
             raise ValueError(
                 f"Unsupported data format {data_format}. "
-                f"Expected: {DataFormat.to_string()}"
+                f"Expected: {DataFormatRGBD.to_string()}"
             )
 
     @staticmethod
@@ -49,15 +48,15 @@ class DatasetFactory:
         detection_matching_config: DetectionMatchingConfig,
     ) -> RGBDDataset:
         formats = {
-            DataFormat.hilti: HiltiStereoDataset,
+            DataFormatStereo.hilti: HiltiStereoDataset,
         }
 
         try:
-            return formats[DataFormat[data_format]](
+            return formats[DataFormatStereo[data_format]](
                 data_path, detection_matching_config
             )
         except KeyError:
             raise ValueError(
                 f"Unsupported data format {data_format}. "
-                f"Expected: {DataFormat.to_string()}"
+                f"Expected: {DataFormatStereo.to_string()}"
             )

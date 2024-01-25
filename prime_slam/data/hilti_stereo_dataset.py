@@ -17,12 +17,14 @@ import numpy as np
 
 from pathlib import Path
 
-from prime_slam.data.constants import (HILTI_DEFAULT_INTRINSICS_CAM0, 
-                                       HILTI_DEFAULT_INTRINSICS_CAM1, 
-                                       HILTI_DISTORTION_CAM0, 
-                                       HILTI_DISTORTION_CAM1,
-                                       HILTI_IMAGE_SIZE,
-                                       HILTI_TRANSFORM_CAM0_TO_CAM1)
+from prime_slam.data.constants import (
+    HILTI_DEFAULT_INTRINSICS_CAM0,
+    HILTI_DEFAULT_INTRINSICS_CAM1,
+    HILTI_DISTORTION_CAM0,
+    HILTI_DISTORTION_CAM1,
+    HILTI_IMAGE_SIZE,
+    HILTI_TRANSFORM_CAM0_TO_CAM1,
+)
 from prime_slam.data.rgbd_dataset import RGBDDataset
 from prime_slam.observation import ObservationData
 from prime_slam.observation.description.descriptor import Descriptor
@@ -59,12 +61,15 @@ class HiltiStereoDataset(RGBDDataset):
 
         rectify_flags = cv2.CALIB_ZERO_DISPARITY
         R1, R2, P1, P2, _ = cv2.fisheye.stereoRectify(
-            K1, D1, K2, D2, self._img_size, R, T, flags=rectify_flags)
+            K1, D1, K2, D2, self._img_size, R, T, flags=rectify_flags
+        )
         self._intrinsics = P1
         self._map1x, self._map1y = cv2.fisheye.initUndistortRectifyMap(
-            K1, D1, R1, P1, self._img_size, cv2.CV_32FC1)
+            K1, D1, R1, P1, self._img_size, cv2.CV_32FC1
+        )
         self._map2x, self._map2y = cv2.fisheye.initUndistortRectifyMap(
-            K2, D2, R2, P2, self._img_size, cv2.CV_32FC1)
+            K2, D2, R2, P2, self._img_size, cv2.CV_32FC1
+        )
 
         self._detector: Detector = detection_matching_config.detector
         self._matcher: ObservationsMatcher = detection_matching_config.frame_matcher
@@ -91,17 +96,21 @@ class HiltiStereoDataset(RGBDDataset):
         cam1_observations = []
         for kpt, desc in zip(cam1_kpts, cam1_descs):
             cam1_observations.append(Observation(kpt, desc))
-        cam0_observation_data = ObservationData(cam0_observations, 'cam0', cam0_img)
-        cam1_observation_data = ObservationData(cam1_observations, 'cam1', cam1_img)
+        cam0_observation_data = ObservationData(cam0_observations, "cam0", cam0_img)
+        cam1_observation_data = ObservationData(cam1_observations, "cam1", cam1_img)
 
-        matches = self._matcher.match_observations(cam0_observation_data, cam1_observation_data)
+        matches = self._matcher.match_observations(
+            cam0_observation_data, cam1_observation_data
+        )
 
         f = self._intrinsics[0, 0]
         depth_img = np.zeros(self._img_size[::-1], dtype=np.float32)
         for match in matches:
             cam1_index, cam0_index = match
             disparity = np.abs(
-                cam0_kpts[cam0_index].coordinates[0] - cam1_kpts[cam1_index].coordinates[0])
+                cam0_kpts[cam0_index].coordinates[0]
+                - cam1_kpts[cam1_index].coordinates[0]
+            )
             if disparity == 0:
                 continue
             depth = (f * self._baseline) / disparity
@@ -111,7 +120,7 @@ class HiltiStereoDataset(RGBDDataset):
         cam0_img.depth = DepthImage(depth_img, self._intrinsics)
 
         return cam0_img
-    
+
     def __len__(self) -> int:
         return len(self.cam0_paths)
 
