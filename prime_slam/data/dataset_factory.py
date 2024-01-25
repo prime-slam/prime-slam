@@ -15,24 +15,47 @@
 from pathlib import Path
 
 from prime_slam.data.data_format import DataFormat
+from prime_slam.data.hilti_stereo_dataset import HiltiStereoDataset
 from prime_slam.data.icl_nuim_dataset import ICLNUIMRGBDDataset
 from prime_slam.data.rgbd_dataset import RGBDDataset
 from prime_slam.data.tum_rgbd_dataset import TUMRGBDDataset
+from prime_slam.typing.hints import DetectionMatchingConfig
 
 __all__ = ["DatasetFactory"]
 
 
 class DatasetFactory:
     @staticmethod
-    def create(data_format: str, data_path: Path) -> RGBDDataset:
+    def create_from_rgbd(data_format: str, data_path: Path) -> RGBDDataset:
         formats = {
             DataFormat.tum: TUMRGBDDataset,
             DataFormat.icl: ICLNUIMRGBDDataset,
             DataFormat.icl_tum: ICLNUIMRGBDDataset.create_tum_format,
+            DataFormat.hilti: HiltiStereoDataset,
         }
 
         try:
             return formats[DataFormat[data_format]](data_path)
+        except KeyError:
+            raise ValueError(
+                f"Unsupported data format {data_format}. "
+                f"Expected: {DataFormat.to_string()}"
+            )
+
+    @staticmethod
+    def create_from_stereo(
+        data_format: str,
+        data_path: Path,
+        detection_matching_config: DetectionMatchingConfig,
+    ) -> RGBDDataset:
+        formats = {
+            DataFormat.hilti: HiltiStereoDataset,
+        }
+
+        try:
+            return formats[DataFormat[data_format]](
+                data_path, detection_matching_config
+            )
         except KeyError:
             raise ValueError(
                 f"Unsupported data format {data_format}. "

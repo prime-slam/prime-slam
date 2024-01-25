@@ -22,6 +22,7 @@ from functools import partial
 from pathlib import Path
 
 from prime_slam.data import DataFormat, DatasetFactory
+from prime_slam.geometry import Pose
 from prime_slam.metrics.pose_error import pose_error
 from prime_slam.observation import (
     LBD,
@@ -63,6 +64,7 @@ from prime_slam.slam.tracking.pose_estimation.rgbd_line_pose_estimator_mrob impo
 from prime_slam.slam.tracking.pose_estimation.rgbd_point_pose_estimator_mrob import (
     RGBDPointPoseEstimatorMROB,
 )
+from prime_slam.typing.hints import DetectionMatchingConfig
 
 
 def create_point_cloud(points_3d):
@@ -112,73 +114,78 @@ def create_point_map(keyframes, intrinsics, color=(1, 0, 0)):
     ]
 
 
-def create_orb_config(intrinsics):
+def create_orb_config():
     name = "orb"
-    projector = PointProjector()
-    point_filters = [PointClipFOVFilter(), PointNonpositiveDepthFilter()]
     matcher = DefaultMatcher(partial(match_descriptors, metric="hamming", max_ratio=1))
-    return SLAMConfig(
+    return DetectionMatchingConfig(
+        name=name,
         detector=ORB(features_number=1000),
         descriptor=ORBDescriptor(),
         frame_matcher=matcher,
         map_matcher=matcher,
-        projector=projector,
-        pose_estimator=RGBDPointPoseEstimatorMROB(intrinsics),
-        observations_filter=FilterChain(point_filters),
-        map_creator=PointMapCreator(projector, name),
-        observation_name=name,
     )
 
 
-def create_sift_config(intrinsics):
+def create_sift_config():
     name = "sift"
-    projector = PointProjector()
-    point_filters = [PointClipFOVFilter(), PointNonpositiveDepthFilter()]
     matcher = DefaultMatcher(partial(match_descriptors, max_ratio=1))
-    return SLAMConfig(
+    return DetectionMatchingConfig(
+        name=name,
         detector=SIFT(1000),
         descriptor=SIFTDescriptor(),
         frame_matcher=matcher,
         map_matcher=matcher,
-        projector=projector,
-        pose_estimator=RGBDPointPoseEstimatorMROB(intrinsics),
-        observations_filter=FilterChain(point_filters),
-        map_creator=PointMapCreator(projector, name),
-        observation_name=name,
     )
 
 
-def create_superpoint_config(intrinsics, use_super_glue=True):
+def create_superpoint_config(use_super_glue=True):
     name = "superpoint"
-    projector = PointProjector()
-    point_filters = [PointClipFOVFilter(), PointNonpositiveDepthFilter()]
     superpoint_matcher = SuperPointMatcher()
-    return SLAMConfig(
+    return DetectionMatchingConfig(
+        name=name,
         detector=SuperPoint(),
         descriptor=SuperPointDescriptor(),
         frame_matcher=SuperGlue() if use_super_glue else superpoint_matcher,
         map_matcher=superpoint_matcher,
-        projector=projector,
-        pose_estimator=RGBDPointPoseEstimatorG2O(intrinsics),
-        observations_filter=FilterChain(point_filters),
-        map_creator=PointMapCreator(projector, name),
-        observation_name=name,
     )
 
 
-def create_lsd_config(intrinsics):
+def create_lsd_config():
     name = "lsd"
-    projector = LineProjector()
     matcher = DefaultMatcher(partial(match_descriptors, max_ratio=1))
-    return SLAMConfig(
+    return DetectionMatchingConfig(
+        name=name,
         detector=LSD(),
         descriptor=LBD(),
         frame_matcher=matcher,
         map_matcher=matcher,
+    )
+
+
+def create_slam_config(detection_matching_config: DetectionMatchingConfig, intrinsics):
+    name = detection_matching_config.name
+    point_based_observations = set(["orb", "sift", "superpoint"])
+    if name in point_based_observations:
+        projector = PointProjector()
+        filters = [PointClipFOVFilter(), PointNonpositiveDepthFilter()]
+        pose_estimator = RGBDPointPoseEstimatorG2O(intrinsics)
+        map_creator = PointMapCreator(projector, name)
+    elif name == "lsd":
+        projector = LineProjector()
+        filters = []
+        pose_estimator = RGBDLinePoseEstimatorMROB(intrinsics)
+        map_creator = LineMapCreator(projector, name)
+    else:
+        raise ValueError(f"Unsupported observation type {name}.")
+    return SLAMConfig(
+        detector=detection_matching_config.detector,
+        descriptor=detection_matching_config.descriptor,
+        frame_matcher=detection_matching_config.frame_matcher,
+        map_matcher=detection_matching_config.map_matcher,
         projector=projector,
-        pose_estimator=RGBDLinePoseEstimatorMROB(intrinsics),
-        observations_filter=FilterChain([]),
-        map_creator=LineMapCreator(projector, name),
+        pose_estimator=pose_estimator,
+        observations_filter=FilterChain(filters),
+        map_creator=map_creator,
         observation_name=name,
     )
 
@@ -198,7 +205,7 @@ if __name__ == "__main__":
         "-D",
         metavar="STR",
         help=f"data format: {DataFormat.to_string()}",
-        default=DataFormat.icl_tum.name,
+        default=DataFormat.hilti.name,
     )
     parser.add_argument(
         "--save-cloud",
@@ -224,20 +231,22 @@ if __name__ == "__main__":
         type=bool,
     )
     args = parser.parse_args()
+    orb_config = create_orb_config()
+    sift_config = create_sift_config()
+    super_point_config = create_superpoint_config()
+    lsd_config = create_lsd_config()
     data_format = args.data_format
     data_path = Path(args.data)
-    dataset = DatasetFactory.create(data_format, data_path)
+    dataset = DatasetFactory.create_from_stereo(
+        data_format, data_path, super_point_config
+    )
 
     gt_poses = dataset.gt_poses
-    init_pose = gt_poses[0]
+    init_pose = gt_poses[0] if gt_poses is not None else Pose(np.eye(4))
     images_number = len(dataset)
 
-    orb_config = create_orb_config(dataset.intrinsics)
-    sift_config = create_sift_config(dataset.intrinsics)
-    super_point_config = create_superpoint_config(dataset.intrinsics)
-    lsd_config = create_lsd_config(dataset.intrinsics)
     keyframe_selector = EveryNthKeyframeSelector(10)
-    slam_config = super_point_config
+    slam_config = create_slam_config(super_point_config, dataset.intrinsics)
     slam = PrimeSLAM(
         backend=G2OPointBackend(dataset.intrinsics),
         frontend=TrackingFrontend(
@@ -247,22 +256,22 @@ if __name__ == "__main__":
     for data in tqdm(dataset):
         slam.process_sensor_data(data)
 
-    poses = slam.trajectory
-    angular_translation_errors = []
-    angular_rotation_errors = []
-    absolute_translation_errors = []
-    keyframe_identifiers = [kf.identifier for kf in slam.frontend.keyframes][:-1]
-    gt_frames_poses = [gt_poses[i] for i in keyframe_identifiers]
-    for est_pose, gt_pose in zip(poses, gt_frames_poses):
-        (
-            angular_translation_error_,
-            angular_rotation_error_,
-            absolute_translation_error_,
-        ) = pose_error(gt_pose.transformation, est_pose)
-        angular_translation_errors.append(angular_translation_error_)
-        angular_rotation_errors.append(angular_rotation_error_)
-        absolute_translation_errors.append(absolute_translation_error_)
-    if args.verbose:
+    if args.verbose and gt_poses is not None:
+        poses = slam.trajectory
+        angular_translation_errors = []
+        angular_rotation_errors = []
+        absolute_translation_errors = []
+        keyframe_identifiers = [kf.identifier for kf in slam.frontend.keyframes][:-1]
+        gt_frames_poses = [gt_poses[i] for i in keyframe_identifiers]
+        for est_pose, gt_pose in zip(poses, gt_frames_poses):
+            (
+                angular_translation_error_,
+                angular_rotation_error_,
+                absolute_translation_error_,
+            ) = pose_error(gt_pose.transformation, est_pose)
+            angular_translation_errors.append(angular_translation_error_)
+            angular_rotation_errors.append(angular_rotation_error_)
+            absolute_translation_errors.append(absolute_translation_error_)
         print(
             f"Median angular_translation_error: {np.median(angular_translation_errors)}"
         )

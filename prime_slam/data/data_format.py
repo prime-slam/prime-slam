@@ -21,6 +21,7 @@ class DataFormat(Enum):
     tum = 0
     icl = 1
     icl_tum = 2
+    hilti = 3
 
     @staticmethod
     def to_string(delimiter: str = ", "):
