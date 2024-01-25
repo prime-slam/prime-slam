@@ -13,6 +13,7 @@
 # limitations under the License.
 import cv2
 import numpy as np
+import torch
 
 from pathlib import Path
 from typing import List
@@ -28,14 +29,15 @@ __all__ = ["SuperPoint"]
 
 class SuperPoint(Detector):
     def __init__(
-        self, weights_path: Path = Path("external/superpoint/superpoint_v1.pth")
+        self,
+        weights_path: Path = Path("external/superpoint/superpoint_v1.pth"),
     ):
         self.model = SuperPointFrontend(
             weights_path=weights_path,
             nms_dist=4,
             conf_thresh=0.015,
             nn_thresh=0.7,
-            cuda=True,
+            cuda=torch.cuda.is_available(),
         )
 
     def detect(self, sensor_data: RGBDImage) -> List[Keyobject]:
