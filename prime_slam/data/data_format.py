@@ -14,7 +14,7 @@
 
 from enum import Enum
 
-__all__ = ["DataFormatRGBD, DataFormatStereo"]
+__all__ = ["DataFormatRGBD", "DataFormatStereo"]
 
 
 class DataFormatRGBD(Enum):

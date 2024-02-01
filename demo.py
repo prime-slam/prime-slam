@@ -21,7 +21,7 @@ import argparse
 from functools import partial
 from pathlib import Path
 
-from prime_slam.data import DataFormat, DatasetFactory
+from prime_slam.data import DataFormatRGBD, DataFormatStereo, DatasetFactory
 from prime_slam.geometry import Pose
 from prime_slam.metrics.pose_error import pose_error
 from prime_slam.observation import (
@@ -204,8 +204,8 @@ if __name__ == "__main__":
         "--data-format",
         "-D",
         metavar="STR",
-        help=f"data format: {DataFormat.to_string()}",
-        default=DataFormat.hilti.name,
+        help=f"data format: {DataFormatRGBD.to_string()} or {DataFormatStereo.to_string()}",
+        default=DataFormatStereo.hilti.name,
     )
     parser.add_argument(
         "--save-cloud",
