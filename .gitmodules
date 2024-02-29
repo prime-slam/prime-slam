@@ -4,3 +4,6 @@
 [submodule "external/superglue"]
 	path = external/superglue
 	url = https://github.com/magicleap/SuperGluePretrainedNetwork
+[submodule "external/voxel_slam"]
+	path = external/voxel_slam
+	url = https://github.com/prime-slam/voxel-slam

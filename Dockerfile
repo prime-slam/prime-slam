@@ -40,6 +40,10 @@ RUN python3 -m pip install --no-cache-dir -r requirements.txt \
     && cd pytlbd \
     && pip install .
 
+COPY wheel wheel
+
+RUN python -m pip install mrob --no-index --find-links wheel --force-reinstall
+
 COPY . .
 
 ENTRYPOINT ["python3", "demo.py"]
