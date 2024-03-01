@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Optional
+
 from prime_slam.slam.backend.backend import Backend
 from prime_slam.slam.frontend.frontend import Frontend
 from prime_slam.slam.slam import SLAM
@@ -23,7 +25,7 @@ class PrimeSLAM(SLAM):
     def __init__(
         self,
         frontend: Frontend,
-        backend: Backend,
+        backend: Optional[Backend],
     ):
         self.backend = backend
         self.frontend = frontend
@@ -38,6 +40,8 @@ class PrimeSLAM(SLAM):
 
     def process_sensor_data(self, sensor_data):
         new_frame = self.frontend.process_sensor_data(sensor_data)
+        if self.backend is None:
+            return
         if new_frame.is_keyframe and len(self.trajectory) > 1:
             for observation_name in new_frame.observations.observation_names:
                 self.__optimize_graph(observation_name)

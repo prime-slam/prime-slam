@@ -28,7 +28,8 @@ class DataFormatRGBD(Enum):
 
 
 class DataFormatStereo(Enum):
-    hilti = 0
+    stereo = 0
+    stereo_lidar = 1
 
     @staticmethod
     def to_string(delimiter: str = ", "):

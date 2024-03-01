@@ -17,14 +17,6 @@ import numpy as np
 
 from pathlib import Path
 
-from prime_slam.data.constants import (
-    HILTI_DEFAULT_INTRINSICS_CAM0,
-    HILTI_DEFAULT_INTRINSICS_CAM1,
-    HILTI_DISTORTION_CAM0,
-    HILTI_DISTORTION_CAM1,
-    HILTI_IMAGE_SIZE,
-    HILTI_TRANSFORM_CAM0_TO_CAM1,
-)
 from prime_slam.data.rgbd_dataset import RGBDDataset
 from prime_slam.observation import ObservationData
 from prime_slam.observation.description.descriptor import Descriptor
@@ -33,30 +25,30 @@ from prime_slam.observation.observation import Observation
 from prime_slam.sensor import DepthImage, RGBDImage, RGBImage
 from prime_slam.slam.tracking.matching.frame_matcher import ObservationsMatcher
 from prime_slam.typing.hints import DetectionMatchingConfig, Transformation
+from prime_slam.utils.configuration_reader import PrimeSLAMConfigurationReader
 
-__all__ = ["HiltiStereoDataset"]
+__all__ = ["StereoDataset"]
 
 
-class HiltiStereoDataset(RGBDDataset):
+class StereoDataset(RGBDDataset):
     def __init__(
         self,
         data_path: Path,
         detection_matching_config: DetectionMatchingConfig,
-        cam0_folder_name: Path = Path("cam0"),
-        cam1_folder_name: Path = Path("cam1"),
+        configuration_reader: PrimeSLAMConfigurationReader,
     ):
-        self.cam0_base_path = data_path / cam0_folder_name
+        self.cam0_base_path = data_path / "cam0"
         self.cam0_paths = sorted(self.cam0_base_path.iterdir())
-        self.cam1_base_path = data_path / cam1_folder_name
+        self.cam1_base_path = data_path / "cam1"
         self.cam1_paths = sorted(self.cam1_base_path.iterdir())
 
-        K1 = HILTI_DEFAULT_INTRINSICS_CAM0[:3, :3]
-        K2 = HILTI_DEFAULT_INTRINSICS_CAM1[:3, :3]
-        D1 = HILTI_DISTORTION_CAM0
-        D2 = HILTI_DISTORTION_CAM1
-        self._img_size = HILTI_IMAGE_SIZE
-        R = HILTI_TRANSFORM_CAM0_TO_CAM1[:3, :3]
-        T = HILTI_TRANSFORM_CAM0_TO_CAM1[:3, 3]
+        K1 = configuration_reader.cam0_intrinsics[:3, :3]
+        K2 = configuration_reader.cam1_intrinsics[:3, :3]
+        D1 = configuration_reader.cam0_distortion
+        D2 = configuration_reader.cam1_distortion
+        self._img_size = cv2.imread(str(self.cam0_paths[0])).shape[1::-1]
+        R = configuration_reader.cam0_to_cam1[:3, :3]
+        T = configuration_reader.cam0_to_cam1[:3, 3]
         self._baseline = np.linalg.norm(T)
 
         rectify_flags = cv2.CALIB_ZERO_DISPARITY
@@ -74,6 +66,7 @@ class HiltiStereoDataset(RGBDDataset):
         self._detector: Detector = detection_matching_config.detector
         self._matcher: ObservationsMatcher = detection_matching_config.frame_matcher
         self._descriptor: Descriptor = detection_matching_config.descriptor
+        self._configuration_reader = configuration_reader
 
     def __getitem__(self, index) -> RGBDImage:
         cam0_img = cv2.imread(str(self.cam0_paths[index]))

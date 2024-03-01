@@ -46,4 +46,4 @@ RUN python -m pip install mrob --no-index --find-links wheel --force-reinstall
 
 COPY . .
 
-ENTRYPOINT ["python3", "demo.py"]
+ENTRYPOINT ["python3", "demo_new.py"]

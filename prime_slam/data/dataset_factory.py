@@ -15,11 +15,13 @@
 from pathlib import Path
 
 from prime_slam.data.data_format import DataFormatRGBD, DataFormatStereo
-from prime_slam.data.hilti_stereo_dataset import HiltiStereoDataset
 from prime_slam.data.icl_nuim_dataset import ICLNUIMRGBDDataset
 from prime_slam.data.rgbd_dataset import RGBDDataset
+from prime_slam.data.stereo_dataset import StereoDataset
+from prime_slam.data.stereo_lidar_dataset import StereoLidarDataset
 from prime_slam.data.tum_rgbd_dataset import TUMRGBDDataset
 from prime_slam.typing.hints import DetectionMatchingConfig
+from prime_slam.utils.configuration_reader import PrimeSLAMConfigurationReader
 
 __all__ = ["DatasetFactory"]
 
@@ -33,30 +35,26 @@ class DatasetFactory:
             DataFormatRGBD.icl_tum: ICLNUIMRGBDDataset.create_tum_format,
         }
 
-        try:
-            return formats[DataFormatRGBD[data_format]](data_path)
-        except KeyError:
-            raise ValueError(
-                f"Unsupported data format {data_format}. "
-                f"Expected: {DataFormatRGBD.to_string()}"
-            )
+        return formats[DataFormatRGBD[data_format]](data_path)
 
     @staticmethod
     def create_from_stereo(
         data_format: str,
         data_path: Path,
         detection_matching_config: DetectionMatchingConfig,
+        configuration_reader: PrimeSLAMConfigurationReader,
     ) -> RGBDDataset:
         formats = {
-            DataFormatStereo.hilti: HiltiStereoDataset,
+            DataFormatStereo.stereo: StereoDataset,
+            DataFormatStereo.stereo_lidar: StereoLidarDataset,
         }
 
-        try:
-            return formats[DataFormatStereo[data_format]](
-                data_path, detection_matching_config
-            )
-        except KeyError:
+        point_based_observations = set(["orb", "sift", "superpoint"])
+        if detection_matching_config.name not in point_based_observations:
             raise ValueError(
-                f"Unsupported data format {data_format}. "
-                f"Expected: {DataFormatStereo.to_string()}"
+                "Sorry, but stereo case supports only point-based observations now"
             )
+
+        return formats[DataFormatStereo[data_format]](
+            data_path, detection_matching_config, configuration_reader
+        )
