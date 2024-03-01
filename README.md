@@ -2,6 +2,11 @@
 SLAM system using various types of landmarks. README will be supplemented.
 
 ## Building Docker Image
+First you need to clone the repository with all the submodules:
+```bash
+git clone --recursive https://github.com/prime-slam/prime-slam.git
+```
+Then you can build the Docker image:
 ```bash
 docker build -t prime-slam .
 ```
@@ -9,22 +14,11 @@ docker build -t prime-slam .
 ## Running Docker Container
 To run the container use the following command:
 ```bash
-docker run --rm -v <DATA_PATH>:/data prime-slam [OPTIONAL_ARGS]
+docker run --gpus all --rm -v <DATA_PATH>:/data prime-slam --configuration-path <PATH_TO_CONFIG>
 ```
-The following `[OPTIONAL_ARGS]` can be used:
-```bash
-optional arguments:
-  -h, --help            show this help message and exit
-  --data PATH, -d PATH  path to data (default: data/)
-  --data-format STR, -D STR
-                        data format: tum, icl, icl_tum (default: icl_tum)
-  --save-cloud BOOL, -s BOOL
-                        save resulting cloud (default: True)
-  --cloud-save-path PATH, -S PATH
-                        path to the saved cloud (default: resulting_cloud.pcd)
-  --verbose BOOL, -v BOOL
-                        print metrics (default: True)
-```
+You can see an example of a configuration file at `configs/hilti2021.yaml`.
+All output data of the algorithm will be saved at `/data/output/` folder.
+
 ## Data formats
 ### `icl`
 ```
@@ -57,3 +51,34 @@ File names may differ from those shown above. Additional information can be foun
 Additional information can be found [here](https://cvg.cit.tum.de/data/datasets/rgbd-dataset/file_formats).
 ### `icl_tum`
 ICL data presented in `tum` format.
+### `stereo`
+```
+/data
+├── /cam0 — first camera in the stereo-pair
+    ├── 1630486019.540119000.png
+    ...
+    └── 1630486369.558611000.png
+└── /cam1 — second camera in the stereo-pair
+    ├── 1630486019.540119000.png
+    ...
+    └── 1630486369.558611000.png
+```
+The number of files in the folders `cam0` and `cam1` should be the same.
+### `stereo_lidar`
+```
+/data
+├── /cam0 — first camera in the stereo-pair
+    ├── 1630486019.540119000.png
+    ...
+    └── 1630486369.558611000.png
+├── /cam1 — second camera in the stereo-pair
+    ├── 1630486019.540119000.png
+    ...
+    └── 1630486369.558611000.png
+└── /pcds — 
+    ├── 1630486019.382846720.pcd
+    ...
+    └── 1630486369.606357760.pcd
+```
+The number of files in the folders `cam0` and `cam1` should be the same.
+All file names should start with the corresponding timestamp, as this allows point clouds and color images to be synchronised.

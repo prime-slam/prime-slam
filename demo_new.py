@@ -124,7 +124,7 @@ def voxel_slam_optimization(
                 // 2,
             )
         )
-        print(f"Iteration: {iteration_ind}:\n{output}")
+        print(f"\nIteration: {iteration_ind}:\n{output}", flush=True)
 
         for pose_ind in range(len(trajectory_batch)):
             trajectory_batch[pose_ind] = (
