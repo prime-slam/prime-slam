@@ -75,7 +75,7 @@ The number of files in the folders `cam0` and `cam1` should be the same.
     ├── 1630486019.540119000.png
     ...
     └── 1630486369.558611000.png
-└── /pcds — 
+└── /pcds — point clouds
     ├── 1630486019.382846720.pcd
     ...
     └── 1630486369.606357760.pcd
