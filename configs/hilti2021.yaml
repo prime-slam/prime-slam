@@ -6,20 +6,22 @@ dataset:
     end: 1500
     step: 100
     iterations: 1
-grid:
-  voxel_edge_length: 8
-subdividers:
-  size: 1
-segmenters:
-  ransac:
-    threshold: 0.01
-    initial_points: 6
-    iterations: 300
-backend:
-  type: "eigen_factor"
-  parameters:
-    iterations_number: 5000
-    robust_type: QUADRATIC
+pipeline:
+  grid:
+    voxel_edge_length: 8
+  subdividers:
+    size: 1
+  segmenters:
+    ransac:
+      threshold: 0.01
+      initial_points: 6
+      iterations: 300
+  backend:
+    type: "eigen_factor"
+    parameters:
+      iterations_number: 5000
+      robust_type: QUADRATIC
+debug: false
 intrinsics:
   cam0: [[703.5090244574985, 0, 735.717493211303, 0],
          [0, 703.3080848119331, 548.9335054515929, 0],

@@ -109,6 +109,7 @@ def voxel_slam_optimization(
             backend=configuration_reader.backend(
                 ind - configuration_reader.patches_step, ind
             ),
+            debug=configuration_reader.debug,
         )
         output = voxel_pipeline.run(
             SequentialPipelineRuntimeParameters(
