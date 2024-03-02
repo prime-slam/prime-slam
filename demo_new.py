@@ -154,7 +154,7 @@ if __name__ == "__main__":
     configuration_reader = PrimeSLAMConfigurationReader(args.configuration_path)
     super_point_config = create_superpoint_config()
     data_path = Path(configuration_reader.dataset_path)
-    output_path = data_path / "output"
+    output_path = Path(configuration_reader.output_directory)
     output_path.mkdir(exist_ok=True)
     data_format = configuration_reader.dataset_type
     if data_format in available_stereo_formats:

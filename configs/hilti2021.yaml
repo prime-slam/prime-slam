@@ -21,6 +21,7 @@ pipeline:
     parameters:
       iterations_number: 5000
       robust_type: QUADRATIC
+  output: "/data/output"
 debug: false
 intrinsics:
   cam0: [[703.5090244574985, 0, 735.717493211303, 0],
