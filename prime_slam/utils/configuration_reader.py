@@ -21,21 +21,6 @@ from external.voxel_slam.slam.pipeline import YAMLConfigurationReader
 
 class PrimeSLAMConfigurationReader(YAMLConfigurationReader):
     @property
-    def dataset_type(self) -> str:
-        """
-        Represents the type of the dataset
-
-        :return: Dataset type
-        """
-        try:
-            dataset = copy.deepcopy(self._configuration["dataset"])
-            dataset_type = dataset["type"]
-        except KeyError as e:
-            raise ValueError(f"{e} must be set")
-
-        return dataset_type
-
-    @property
     def cam0_intrinsics(self) -> np.ndarray:
         """
         Represents the intrinsics of the cam0
