@@ -15,6 +15,7 @@
 import numpy as np
 import numpy.typing as npt
 
+from collections import namedtuple
 from typing import Annotated, Literal, TypeVar
 
 __all__ = [
@@ -30,6 +31,7 @@ __all__ = [
     "Array3",
     "Array3x3",
     "ArrayNx6",
+    "DetectionMatchingConfig",
     "Rotation",
     "Translation",
     "Transformation",
@@ -66,3 +68,7 @@ Transformation = Array4x4[float]
 Rotation = Array3x3[float]
 
 Translation = Array3[float]
+
+DetectionMatchingConfig = namedtuple(
+    "DetectionMatchingConfig", "name detector descriptor frame_matcher map_matcher"
+)

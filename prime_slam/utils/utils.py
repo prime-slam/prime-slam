@@ -1,4 +1,4 @@
-# Copyright (c) 2024, Kirill Ivanov, Ivan Moskalenko, Anastasiia Kornilova
+# Copyright (c) 2024, Moskalenko Ivan, Anastasiia Kornilova
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,25 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from enum import Enum
+import mrob
 
-__all__ = ["DataFormatRGBD", "DataFormatStereo"]
-
-
-class DataFormatRGBD(Enum):
-    tum = 0
-    icl = 1
-    icl_tum = 2
-
-    @staticmethod
-    def to_string(delimiter: str = ", "):
-        return delimiter.join(dist.name for dist in DataFormatRGBD)
+from pathlib import Path
 
 
-class DataFormatStereo(Enum):
-    stereo = 0
-    stereo_lidar = 1
-
-    @staticmethod
-    def to_string(delimiter: str = ", "):
-        return delimiter.join(dist.name for dist in DataFormatStereo)
+def write_trajectory(path_to_save: Path, trajectory):
+    with open(path_to_save, "w") as f:
+        for pose in trajectory:
+            qx, qy, qz, qw = mrob.geometry.so3_to_quat(pose[:3, :3])
+            x, y, z = pose[:3, 3]
+            f.write(f"{x} {y} {z} {qx} {qy} {qz} {qw}\n")
