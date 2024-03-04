@@ -180,7 +180,7 @@ if __name__ == "__main__":
     )
 
     start = configuration_reader.patches_start
-    end = configuration_reader.patches_end
+    end = configuration_reader.patches_end + 1
     lidar_optimized_poses = np.empty((end - start, 4, 4))
 
     for i in tqdm(range(start, end)):
@@ -193,7 +193,7 @@ if __name__ == "__main__":
                 i + 1 - configuration_reader.patches_step, i + 1
             )
             lidar_optimized_poses[
-                i + 1 - configuration_reader.patches_step : i + 1
+                i + 1 - configuration_reader.patches_step - start : i + 1 - start
             ] = voxel_slam_optimization(
                 configuration_reader, pcds_batch, trajectory_batch, output_path, i + 1
             )
